@@ -1,0 +1,1 @@
+export const GET_RUNNING_AUCTIONS = '/getRunningAuctions'
