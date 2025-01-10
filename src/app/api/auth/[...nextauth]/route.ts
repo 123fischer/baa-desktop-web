@@ -4,10 +4,21 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from './firebase';
 
+import { DefaultSession } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
+
+declare module 'next-auth' {
+  interface Session extends DefaultSession {
+    accessToken: string;
+    refreshToken: string;
+  }
+}
+
 export const authOptions: AuthOptions = {
   pages: {
     error: '/',
   },
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -23,12 +34,14 @@ export const authOptions: AuthOptions = {
             credentials.token
           );
 
-          if (userCredential.user) {
+          const accessToken = await userCredential.user.getIdToken();
+
+          if (userCredential.user && accessToken) {
             return {
+              accessToken: accessToken,
               id: userCredential.user.uid,
               email: userCredential.user.email,
               name: userCredential.user.displayName,
-              image: userCredential.user.photoURL,
             };
           }
           return null;
@@ -43,16 +56,15 @@ export const authOptions: AuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: any) {
       if (user) {
-        token.id = user.id;
+        token.accessToken = user.accessToken;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        //@ts-ignore
-        session.user.id = token.id as string;
+        session.accessToken = token.accessToken as string;
       }
       return session;
     },

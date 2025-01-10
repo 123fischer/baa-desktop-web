@@ -1,12 +1,30 @@
 'use client';
+
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+
 import useCarAuction from '@/hooks/useCarAuction';
 import { capitalizeFirstLetter } from '@/utils/utlis';
+
 import { Button } from '../Button';
+import { getRunningAuctions } from '@/api/api';
+import { useSession } from 'next-auth/react';
 
 const AuctionList = () => {
   const { auctions, toggleFavorite } = useCarAuction();
+  const { data: session, status: sessionStatus } = useSession();
+  const isLoggedIn = !!session?.accessToken;
+
+  const getAuctions = async () => {
+    if (isLoggedIn) {
+      await getRunningAuctions(session.accessToken);
+    }
+  };
+
+  useEffect(() => {
+    getAuctions();
+  }, [session]);
 
   if (auctions.length === 0) {
     return (
