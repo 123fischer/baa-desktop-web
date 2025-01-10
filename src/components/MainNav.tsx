@@ -1,8 +1,13 @@
 'use client';
-
-import Link from "next/link";
-import { cn } from '@/utils/utlis';
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Gavel, Heart, Hammer } from 'lucide-react';
+
+import { cn } from '@/utils/utlis';
+import { getUserWebToken } from '@/api/api';
+
 
 const navItems = [
   {
@@ -25,6 +30,32 @@ const navItems = [
 ];
 
 const MainNav = () => {
+  const router = useRouter();
+
+  const signInWithCustomToken = async () => {
+    try {
+      const customToken = await getUserWebToken();
+
+      if (customToken) {
+        const res = await signIn('credentials', {
+          redirect: false,
+          token: customToken.token,
+        });
+        if (res?.error) {
+          return;
+        } else {
+          router.push('/');
+        }
+      }
+    } catch (err: any) {}
+  };
+
+  // will be removed upon auth flow implementation
+
+  useEffect(() => {
+    signInWithCustomToken();
+  }, []);
+
   return (
     <nav className="flex items-center space-x-8">
       {navItems.map((item) => (
