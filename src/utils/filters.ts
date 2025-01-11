@@ -22,7 +22,7 @@ export const filterAuctions = (
   filters: Filters
 ): CarAuction[] => {
   let filtered = auctions.filter((auction) => {
-    if (filters.search.trim()) {
+    if (filters.search && filters.search.trim()) {
       const searchTerm = filters.search.trim().toLowerCase();
       const brand = auction.brand.toLowerCase();
       const model = auction.model.toLowerCase();

@@ -5,6 +5,7 @@ import ReactQueryClientProvider from '@/contexts/QueryClientProvider';
 import TranslationsProvider from '@/contexts/TranslationspRrovider';
 import SessionClientProvider from '@/contexts/SessionClientProvider';
 
+import { MobileBanner } from '@/components/MobileBanner';
 import { i18n } from '@/i18n/routing';
 import { Locales } from '@/types/types';
 
@@ -30,7 +31,6 @@ export default async function RootLayout({
 
   const session = await getServerSession();
 
-
   return (
     <html lang={locale}>
       <body>
@@ -38,6 +38,7 @@ export default async function RootLayout({
           <SessionClientProvider session={session}>
             <TranslationsProvider locale={locale as Locales}>
               {children}
+              <MobileBanner />
             </TranslationsProvider>
           </SessionClientProvider>
         </ReactQueryClientProvider>
