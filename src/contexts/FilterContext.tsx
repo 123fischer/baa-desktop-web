@@ -16,12 +16,12 @@ interface FilterContextType {
 }
 
 const defaultFilters: Filters = {
-  search: '',
-  make: 'all',
-  year: 'all',
-  mileage: 'all',
-  location: 'all',
-  sortBy: 'all',
+  search: undefined,
+  make: undefined,
+  year: undefined,
+  mileage: undefined,
+  location: undefined,
+  sortBy: undefined,
 };
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
