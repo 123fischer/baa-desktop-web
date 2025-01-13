@@ -1,7 +1,8 @@
+import { JWT } from 'next-auth/jwt';
+import Error from 'next/error';
 import baseAxios from '@/utils/axios';
 import * as routes from './routes';
-import Error from 'next/error';
-import { Auction, AuctionList } from '@/types/types';
+import { RunningAuctionBody } from '@/types/types';
 
 export const getUserWebToken = () =>
   baseAxios
@@ -15,7 +16,7 @@ export const getUserWebToken = () =>
     });
 
 // running auctions list
-export const getRunningAuctions = (body: any, token: any) =>
+export const getRunningAuctions = (body: RunningAuctionBody, token: JWT) =>
   baseAxios
     .post(routes.GET_RUNNING_AUCTIONS, body, {
       headers: {
@@ -27,15 +28,39 @@ export const getRunningAuctions = (body: any, token: any) =>
       return new Error(e.message);
     });
 
-export const onPlaceBid = (body: any, token: any) => {
-  baseAxios
+export const toggleFavorites = async (
+  body: {
+    lotId: string;
+  },
+  token: JWT
+) => {
+  await baseAxios
+    .post(routes.TOGGLE_FAVORITES, body, {
+      headers: {
+        Authorization: 'Bearer ' + token,
+      },
+    })
+    .then((res) => res.data as { success: boolean })
+    .catch((e) => new Error(e.message));
+};
+
+// place bid
+export const onPlaceBid = async (
+  body: {
+    lotId: string;
+    manual: boolean;
+    bid: number;
+  },
+  token: JWT
+): Promise<{ success: boolean; outbid?: boolean }> => {
+  return baseAxios
     .post(routes.PLACE_BID, body, {
       headers: {
         Authorization: 'Bearer ' + token,
       },
     })
-    .then((res) => res.data)
+    .then((res) => res.data as { success: boolean; outbid?: boolean })
     .catch((e) => {
-      return new Error(e.message);
+      throw new Error(e.message);
     });
 };

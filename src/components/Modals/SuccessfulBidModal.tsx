@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '../UI/Button';
 import XIcon from 'public/icons/xIcon.svg';
 import CheckIcon from '../UI/Check';
+import { formatNumber } from '@/utils/utlis';
 
 interface BidModalProps {
   isOpen: boolean;
   onDismiss: () => void;
-  minimumBid?: number;
+  bid: number;
 }
-const SuccessfulBidModal = ({
-  isOpen,
-  onDismiss,
-  minimumBid,
-}: BidModalProps) => {
+const SuccessfulBidModal = ({ isOpen, onDismiss, bid }: BidModalProps) => {
   if (!isOpen) return null;
 
   return (
@@ -48,7 +45,9 @@ const SuccessfulBidModal = ({
               <span className="font-semibold text-light-dark text-[17px]">
                 Bid Success!
               </span>
-              <span className="font-bold text-dark text-[26px]">CHF 1’500</span>
+              <span className="font-bold text-dark text-[26px]">
+                CHF {formatNumber(bid)}
+              </span>
             </div>
             <p className="font-semibold text-dark text-[18px]">
               Your bid has been successfully placed!

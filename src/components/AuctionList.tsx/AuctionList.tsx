@@ -1,34 +1,105 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import dayjs from 'dayjs';
-import { getRunningAuctions, onPlaceBid } from '@/api/api';
+import { onPlaceBid } from '@/api/api';
 
-import ArrowIcon from 'public/icons/arrowDown.svg';
 import StarOutlineIcon from 'public/icons/starOutline.svg';
 import StarSolidIcon from 'public/icons/starSolid.svg';
 
 import useCarAuction from '@/hooks/useCarAuction';
-import { capitalizeFirstLetter } from '@/utils/utlis';
 import { Button } from '@/components/UI/Button';
 import BidModal from '../Modals/BidModal';
 import UnSuccessfulBidModal from '../Modals/UnSuccessfulBidModal';
 import SuccessfulBidModal from '../Modals/SuccessfulBidModal';
-import { Auction } from '@/types/types';
-import { DEFAULT_FILTERS, DEFAULT_PAGE_SIZE } from '@/constants/constants';
-import { Category, SortState } from '@/enums';
+import OutBidModal from '../Modals/OutBidModal';
+
+import { formatNumber } from '@/utils/utlis';
 
 const AuctionList = () => {
-  const { auctions, toggleFavorite } = useCarAuction();
-  const { data: session, status: sessionStatus } = useSession();
+  const { auctions, onToggleFavorite, refetch } = useCarAuction();
+  const { data: session } = useSession();
   const [showBidModal, setShowBidModal] = useState(false);
   const [successfulBid, setSuccessfulBid] = useState(false);
   const [unSuccessfulBid, setUnSuccessfulBid] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(false);
+  const [outBid, setOutBid] = useState(false);
   const [currentBid, setCurrentBid] = useState(100);
+  const [useBidAgent, setUseBidAgent] = useState(false);
   const [bidDetaits, setBidDetails] = useState<any>();
+  const [auctionsTimeLeft, setAuctionsTimeLeft] = useState<
+    {
+      id: string;
+      timeLeft: string;
+    }[]
+  >([]);
+
+  const onCountDown = (auctionId: string, endsAt: Date) => {
+    const now = dayjs();
+    const duration = dayjs(endsAt).diff(now);
+    if (duration <= 0) {
+      return {
+        id: auctionId,
+        timeLeft: `-d-hh-mm-ss`,
+      };
+    } else {
+      const days = dayjs(endsAt).diff(now, 'days');
+      const hours = dayjs(endsAt).diff(now, 'hours') % 24;
+      const minutes = dayjs(endsAt).diff(now, 'minutes') % 60;
+      const seconds = dayjs(endsAt).diff(now, 'seconds') % 60;
+
+      return {
+        id: auctionId,
+        timeLeft: `-${days}-${hours}-${minutes}-${seconds}`,
+      };
+    }
+  };
+
+  useEffect(() => {
+    if (auctions) {
+      const intervalId = setInterval(() => {
+        const auctionsEndTimes = auctions?.map((auction) => ({
+          id: auction.id,
+          endsAt: auction.endsAt,
+        }));
+        const Auctions_Time_left = auctionsEndTimes.map((ele) =>
+          onCountDown(ele.id, ele.endsAt)
+        );
+        setAuctionsTimeLeft(Auctions_Time_left);
+      }, 1000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [auctions]);
+
+  const { mutate: placeBid } = useMutation({
+    mutationFn: () =>
+      onPlaceBid(
+        {
+          bid: currentBid,
+          lotId: bidDetaits.id,
+          manual: !useBidAgent,
+        },
+        session?.accessToken
+      ),
+    onSuccess(data) {
+      if (data.outbid) {
+        setOutBid(true);
+      } else if (data.success) {
+        setSuccessfulBid(true);
+      }
+      refetch();
+    },
+    onError() {
+      setUnSuccessfulBid(true);
+    },
+  });
+
+  const onConfirmBid = async () => {
+    setShowBidModal(false);
+    placeBid();
+  };
 
   if (auctions?.length === 0) {
     return (
@@ -37,29 +108,11 @@ const AuctionList = () => {
       </div>
     );
   }
-  const onCountDown = (time: Date) => {
-    const now = dayjs();
-    const TIME_LEFT = dayjs(time).diff(now, 'D');
-    return dayjs(TIME_LEFT).format('d-hh-mm-ss');
-  };
-
-  const onConfirmBid = async () => {
-    setShowBidModal(false);
-    try {
-      const res = onPlaceBid(
-        {
-          bid: currentBid,
-          lotId: bidDetaits.id,
-        },
-        session?.accessToken
-      );
-    } catch (error) {}
-  };
 
   return (
     <>
       <p className="mb-4 text-primary">{auctions?.length} results</p>
-      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 px-4 py-4 text-sm text-dark border-b">
+      <div className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 px-4 py-4 text-sm text-dark border-b">
         <div />
         <div>Brand & Model</div>
         <div>Year</div>
@@ -70,35 +123,35 @@ const AuctionList = () => {
       </div>
 
       <div className="divide-y divide-neutral-200">
-        {auctions.map((auction) => {
-          const MINIMUM_BID = !!auction?.bidList.length
+        {auctions?.map((auction) => {
+          const MINIMUM_BID = !!auction?.bidList?.length
             ? Math.max(...auction?.bidList?.map((ele) => ele.bid)) + 100
             : 100;
 
+          const TIME_LEFT = auctionsTimeLeft.filter(
+            (el) => el.id === auction.id
+          )?.[0]?.timeLeft;
+
           return (
             <div
-              key={auction.id}
-              className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 items-center px-4 py-4 text-sm hover:bg-neutral-100"
+              key={auction?.id}
+              className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 items-center px-4 py-4 text-sm hover:bg-neutral-100"
             >
               <Image
-                src={`${auction.images[2]}`}
-                alt={`${auction.brand}`}
+                src={`${auction?.images?.[2]}`}
+                alt={`${auction?.title}`}
                 width={100}
                 height={75}
                 className="rounded-lg"
               />
               <div>
-                {/* <h3 className="font-medium">
-                  {capitalizeFirstLetter(auction.brand)}
-                </h3> */}
+                <h3 className="font-medium">{auction?.title?.split(',')[0]}</h3>
               </div>
-              <div>{/*<h3>{auction?.year}</h3>*/}</div>
-              <div>{auction?.details?.mileage} miles</div>
-              <div>{auction.details.location}</div>
-              <div>${MINIMUM_BID}</div>
-              <span className="text-primary truncate">
-                {onCountDown(auction.endsAt)}
-              </span>
+              <div>{auction?.details.firstRegistration.split('/')[1]}</div>
+              <div>{auction?.details?.mileage} KM</div>
+              <div>{auction?.details?.location}</div>
+              <div>CHF {formatNumber(MINIMUM_BID)}</div>
+              <span className="text-primary truncate">{TIME_LEFT}</span>
               <Button
                 variant="default"
                 className="bg-primary"
@@ -111,7 +164,7 @@ const AuctionList = () => {
                 Place bid
               </Button>
               <button
-                onClick={() => toggleFavorite(auction.id)}
+                onClick={() => onToggleFavorite(auction.id)}
                 className="p-2 hover:bg-neutral-200 rounded-full m-auto"
               >
                 {auction.isFavorite ? (
@@ -125,30 +178,6 @@ const AuctionList = () => {
         })}
       </div>
 
-      <div className="flex items-center justify-end pt-4">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" className="h-8 w-8">
-            <ArrowIcon className="w-2 rotate-90" />
-            <span className="sr-only">Previous page</span>
-          </Button>
-
-          {[1, 2, 3, '...', 8, 9, 10].map((page, i) => (
-            <Button
-              key={i}
-              variant={page === 1 ? 'default' : 'outline'}
-              className={page === 1 ? 'bg-primary' : ''}
-              size="sm"
-            >
-              {page}
-            </Button>
-          ))}
-
-          <Button variant="outline" size="icon" className="h-8 w-8">
-            <ArrowIcon className="w-2 -rotate-90" />
-            <span className="sr-only">Next page</span>
-          </Button>
-        </div>
-      </div>
       <BidModal
         {...{
           isOpen: showBidModal,
@@ -160,19 +189,21 @@ const AuctionList = () => {
             carName: bidDetaits?.title,
             carDetails: `${bidDetaits?.details?.mileage} km, ${bidDetaits?.details?.firstRegistration}`,
             imageUrl: bidDetaits?.images[0],
-            minimumBid: !!bidDetaits?.bidList.length
+            minimumBid: !!bidDetaits?.bidList?.length
               ? Math.max(...bidDetaits?.bidList?.map((ele: any) => ele.bid)) +
                 100
               : 100,
           },
           setCurrentBid: (value: any) => setCurrentBid(value),
           currentBid: currentBid,
-          bidIncrement: 10,
+          useBidAgent,
+          setUseBidAgent: (value: any) => setUseBidAgent(value),
         }}
       />
       <UnSuccessfulBidModal
         {...{
           isOpen: unSuccessfulBid,
+          bid: currentBid,
           onDismiss() {
             setUnSuccessfulBid(false);
           },
@@ -184,9 +215,18 @@ const AuctionList = () => {
       />
       <SuccessfulBidModal
         {...{
+          bid: currentBid,
           isOpen: successfulBid,
           onDismiss() {
             setSuccessfulBid(false);
+          },
+        }}
+      />
+      <OutBidModal
+        {...{
+          isOpen: outBid,
+          onDismiss() {
+            setOutBid(false);
           },
         }}
       />

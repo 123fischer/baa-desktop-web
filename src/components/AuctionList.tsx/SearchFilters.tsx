@@ -12,23 +12,14 @@ import {
 } from '@/components/UI/Select';
 import { Input } from '@/components/UI/Input';
 import { useFilters } from '@/contexts/FilterContext';
-import { getUniqueValues } from '@/utils/filters';
-import { makes } from '@/constants/makes';
-import { parseMileage, formatMileage } from '@/utils/mileage';
 import { cn } from '@/utils/utlis';
+import useCarAuction from '@/hooks/useCarAuction';
 
 const SearchFilters = () => {
   const { filters, updateFilter, resetFilters } = useFilters();
-  const years = getUniqueValues('year');
-  const locations = getUniqueValues('location');
+  const { filterOptions } = useCarAuction();
 
-  const mileages = getUniqueValues('mileage')
-    .map((m) => parseMileage(m))
-    .sort((a, b) => a - b);
-
-  const hasSelectedFilter = Object.values(filters).some((value) =>
-    value?.trim()
-  );
+  const hasSelectedFilter = Object.values(filters)?.some((value) => value);
 
   return (
     <div
@@ -40,18 +31,18 @@ const SearchFilters = () => {
       <Input
         placeholder="Search by brand or model"
         icon={<SearchIcon className="w-[20px] opacity-50" />}
-        value={filters.search}
+        value={filters?.search ?? ''}
         onChange={(e) => updateFilter('search', e.target.value)}
       />
       <Select
-        value={filters.make}
-        onValueChange={(value) => updateFilter('make', value)}
+        value={filters?.brand ?? ''}
+        onValueChange={(value) => updateFilter('brand', value)}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Make" />
+          <SelectValue placeholder="brand" />
         </SelectTrigger>
         <SelectContent>
-          {makes.map((make) => (
+          {filterOptions?.brands?.map((make) => (
             <SelectItem key={make.value} value={make.value}>
               {make.label}
             </SelectItem>
@@ -59,52 +50,52 @@ const SearchFilters = () => {
         </SelectContent>
       </Select>
       <Select
-        value={filters.year}
+        value={filters?.year ?? ''}
         onValueChange={(value) => updateFilter('year', value)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Build year" />
         </SelectTrigger>
         <SelectContent>
-          {years.map((year) => (
-            <SelectItem key={year} value={year}>
-              {year}
+          {filterOptions?.years?.map((year) => (
+            <SelectItem key={year.value} value={year.value}>
+              {year.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
       <Select
-        value={filters.mileage}
+        value={filters?.mileage ?? ''}
         onValueChange={(value) => updateFilter('mileage', value)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Mileage" />
         </SelectTrigger>
         <SelectContent>
-          {mileages.map((mileage) => (
-            <SelectItem key={mileage} value={String(mileage)}>
-              Under {formatMileage(mileage)}
+          {filterOptions?.mileages?.map((mileage) => (
+            <SelectItem key={mileage.value} value={String(mileage.value)}>
+              {mileage.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
       <Select
-        value={filters.location}
+        value={filters.location ?? ''}
         onValueChange={(value) => updateFilter('location', value)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Location" />
         </SelectTrigger>
         <SelectContent>
-          {locations.map((location) => (
-            <SelectItem key={location} value={location}>
-              {location}
+          {filterOptions?.locations?.map((location) => (
+            <SelectItem key={location.value} value={location.value}>
+              {location.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
       <Select
-        value={filters.sortBy}
+        value={filters.sortBy ?? ''}
         onValueChange={(value) => updateFilter('sortBy', value)}
       >
         <SelectTrigger>

@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, m, motion } from 'framer-motion';
 import { Button } from '../UI/Button';
+import { BID_INCREMENT } from '@/constants/constants';
+import { formatNumber } from '@/utils/utlis';
 import XIcon from 'public/icons/xIcon.svg';
-import { Input } from '../UI/Input';
+
 
 interface BidModalProps {
   isOpen: boolean;
@@ -18,6 +20,8 @@ interface BidModalProps {
   };
   currentBid: number;
   setCurrentBid: (value: any) => void;
+  useBidAgent: boolean;
+  setUseBidAgent: (value: boolean) => void;
 }
 
 const BidModal = ({
@@ -27,27 +31,50 @@ const BidModal = ({
   details,
   currentBid,
   setCurrentBid,
+  useBidAgent,
+  setUseBidAgent,
 }: BidModalProps) => {
-  const [useBidAgent, setUseBidAgent] = useState(false);
   const [confirmBid, setConfirmBid] = useState(false);
-
-  const bidIncrement = 10;
-
-  if (!isOpen) return null;
+  const [inputText, setInputText] = useState<any>();
 
   const handleIncrementBid = () => {
-    setCurrentBid((prev: any) => prev + bidIncrement);
+    setCurrentBid((prev: any) => prev + BID_INCREMENT);
+    setInputText((prev: any) => prev + BID_INCREMENT);
   };
 
   const handleDecrementBid = () => {
-    if (currentBid - bidIncrement >= details?.minimumBid) {
-      setCurrentBid((prev: any) => prev - bidIncrement);
+    if (currentBid - BID_INCREMENT >= details?.minimumBid) {
+      setCurrentBid((prev: any) => prev - BID_INCREMENT);
+      setInputText((prev: any) => prev - BID_INCREMENT);
     }
+  };
+
+  const handleOnDismiss = () => {
+    setConfirmBid(false);
+    setInputText(details.minimumBid);
+    onDismiss?.();
   };
 
   const handlePlaceBid = () => {
     setConfirmBid(true);
   };
+  const handleConfirmBid = () => {
+    setConfirmBid(false);
+    onConfirm?.();
+  };
+
+  const formatTextInputValue = (num: string) => {
+    const NUM = num.endsWith('00') ? num.slice(0, -2) : num;
+    setInputText(parseInt(NUM + '00'));
+  };
+
+  useEffect(() => {
+    if (details.minimumBid) {
+      setInputText(currentBid);
+    }
+  }, [details.minimumBid]);
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -65,7 +92,7 @@ const BidModal = ({
         <div className="bg-white rounded-lg max-w-xl w-full p-8 relative">
           <Button
             variant="default"
-            onClick={onDismiss}
+            onClick={handleOnDismiss}
             className="absolute right-4 top-4 bg-neutral-100 w-8 h-8 px-0 py-0  hover:bg-neutral-200 rounded-full"
           >
             <XIcon />
@@ -94,40 +121,42 @@ const BidModal = ({
                 <label className="block text-[15px] mb-2 text-dark">
                   Your maximum bid
                 </label>
-                <div className="flex items-center gap-2 border-[1px] rounded-lg border-neutral-300 p-2">
+                <div className="flex items-center gap-2 border-[1px] rounded-lg border-neutral-300 px-4 py-2">
+                  <span className="text-light-dark">CHF</span>
                   <input
                     type="text"
                     id={details?.carName}
-                    value={currentBid ? currentBid.toString() : ''}
+                    value={currentBid ? formatNumber(inputText) : ''}
                     onChange={(e) => {
-                      const value = e.target.value;
-                      setCurrentBid(parseInt(value));
+                      const value = e.target.value.replace(/'/g, '');
+                      setCurrentBid(value);
+                      formatTextInputValue(value);
                     }}
-                    className="flex-1 border-0 rounded-lg px-4 py-2 text-center text-[15px] focus:outline-none "
+                    className="flex-1 border-1 rounded-lg py-2 text-left text-[15px] focus:outline-none "
                   />
                   <button
                     onClick={handleIncrementBid}
                     className="bg-neutral-100 hover:bg-neutral-200 px-5 py-2 text-[15px] rounded-lg font-semibold text-dark"
                   >
-                    + CHF {bidIncrement}
+                    + CHF {BID_INCREMENT}
                   </button>
                   <button
                     onClick={handleDecrementBid}
                     className="bg-neutral-100 hover:bg-neutral-200 px-5 py-2 text-[15px] rounded-lg font-semibold text-dark"
                   >
-                    - CHF {bidIncrement}
+                    - CHF {BID_INCREMENT}
                   </button>
                 </div>
                 <p className="text-light-dark text-[14px] mt-1">
-                  Minimum bid CHF {details.minimumBid.toLocaleString()}
+                  Minimum bid CHF {formatNumber(details.minimumBid)}
                 </p>
               </div>
 
               <div className="bg-neutral-100 border-[1px] border-neutral-200 px-6 py-5 rounded-lg mb-6">
                 <p className="text-light-dark text-center text-[16px]">
-                  Minimum Bid increment is CHF
-                  {bidIncrement.toLocaleString()}. If you bid more than CHF xxx
-                  by default the{' '}
+                  Minimum Bid increment is CHF {BID_INCREMENT.toLocaleString()}.
+                  If you bid more than CHF {formatNumber(details.minimumBid)} by
+                  default the{' '}
                   <a className="underline" href="">
                     Bid Agent{' '}
                   </a>{' '}
@@ -166,10 +195,15 @@ const BidModal = ({
             <div className="pt-2">
               <div className="flex-col gap-2 bg-neutral-100 border-[1px] border-neutral-200 px-6 py-5 rounded-lg mb-8 flex justify-center text-center font-semibold">
                 <span className="text-[18px] text-light-dark">Check bid</span>
-                <h1 className="text-[30px] text-dark">CHF {currentBid}</h1>
+                <h1 className="text-[30px] text-dark">
+                  CHF {formatNumber(currentBid)}
+                </h1>
                 <span className="text-dark font-light ">
-                  Plus <span className="font-bold">CHF 99 </span> auction fee
-                  for a successful purchase.
+                  Plus{' '}
+                  <span className="font-bold">
+                    CHF {Math.max(99, Math.trunc(0.0099 * currentBid))}{' '}
+                  </span>{' '}
+                  auction fee for a successful purchase.
                 </span>
               </div>
               <div className="flex gap-5">
@@ -182,7 +216,7 @@ const BidModal = ({
                 >
                   Edit bid
                 </Button>
-                <Button onClick={onConfirm} className="w-[50%] h-11">
+                <Button onClick={handleConfirmBid} className="w-[50%] h-11">
                   Confirm bid
                 </Button>
               </div>

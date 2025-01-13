@@ -1,11 +1,12 @@
+import { Category } from '@/enums';
+
 export type Filters = {
-  bodyTypes: string[] | null;
-  brands: string[] | null;
-  desiredPrices: number[] | null;
-  firstRegistrations: number[] | null;
-  fuels: string[] | null;
-  locations: string[] | null;
-  mileage: string[] | null;
+  brand: string | null;
+  year: string | null;
+  location: string | null;
+  mileage: string | null;
+  search: string | null;
+  sortBy: string | null;
 };
 
 export type Details = {
@@ -32,6 +33,7 @@ export type Auction = {
   details: Details;
   active: boolean;
   canceled?: boolean;
+  bid?: number;
   bidList: any[];
   createdAt: Date;
   scheduledAt?: Date;
@@ -54,6 +56,28 @@ export type AuctionList = {
     favorite: number;
     running: number;
     scheduled: number;
+  };
+};
+
+export type FilterElement = {
+  key: string;
+  value: any;
+};
+
+export type RunningAuctionBody = {
+  order: string;
+  category: Category;
+  size: number;
+  filters: {
+    brand?: FilterElement[];
+    location?: FilterElement[];
+    fuel?: FilterElement[];
+    gear?: FilterElement[];
+    bodyType?: FilterElement[];
+    firstRegistration?: FilterElement[];
+    desiredPrice?: FilterElement[];
+    mileage?: FilterElement[];
+    owner: FilterElement[];
   };
 };
 

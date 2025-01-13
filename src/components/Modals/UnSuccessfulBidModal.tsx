@@ -3,18 +3,19 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '../UI/Button';
 import XIcon from 'public/icons/xIcon.svg';
 import ErrorIcon from '../UI/Error';
+import { formatNumber } from '@/utils/utlis';
 
 interface BidModalProps {
   isOpen: boolean;
   onDismiss: () => void;
-  minimumBid?: number;
+  bid: number;
   onPlaceBid?: () => void;
 }
 const UnSuccessfulBidModal = ({
   isOpen,
   onDismiss,
   onPlaceBid,
-  minimumBid,
+  bid,
 }: BidModalProps) => {
   if (!isOpen) return null;
 
@@ -50,7 +51,9 @@ const UnSuccessfulBidModal = ({
               <span className="font-semibold text-light-dark text-[17px]">
                 Bid Error!
               </span>
-              <span className="font-bold text-dark text-[26px]">CHF 1’500</span>
+              <span className="font-bold text-dark text-[26px]">
+                CHF {formatNumber(bid)}
+              </span>
             </div>
             <p className="font-semibold text-dark text-[22px] text-center">
               You have been outbid by a bid agent. Please place a higher bid.
