@@ -104,7 +104,7 @@ const AuctionList = () => {
   if (auctions?.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-neutral-300">No auctions match your filters.</p>
+        <p className="text-neutral-shade">No auctions match your filters.</p>
       </div>
     );
   }
@@ -122,7 +122,7 @@ const AuctionList = () => {
         <div>Time left</div>
       </div>
 
-      <div className="divide-y divide-neutral-200">
+      <div className="divide-y divide-neutral">
         {auctions?.map((auction) => {
           const MINIMUM_BID = !!auction?.bidList?.length
             ? Math.max(...auction?.bidList?.map((ele) => ele.bid)) + 100
@@ -135,7 +135,7 @@ const AuctionList = () => {
           return (
             <div
               key={auction?.id}
-              className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 items-center px-4 py-4 text-sm hover:bg-neutral-100"
+              className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 items-center px-4 py-4 text-sm hover:bg-neutral-tint"
             >
               <Image
                 src={`${auction?.images?.[2]}`}
@@ -165,12 +165,12 @@ const AuctionList = () => {
               </Button>
               <button
                 onClick={() => onToggleFavorite(auction.id)}
-                className="p-2 hover:bg-neutral-200 rounded-full m-auto"
+                className="p-2 hover:bg-neutral rounded-full m-auto"
               >
                 {auction.isFavorite ? (
                   <StarSolidIcon className="w-5 text-accent" />
                 ) : (
-                  <StarOutlineIcon className="w-5 text-neutral-300" />
+                  <StarOutlineIcon className="w-5 text-neutral-shade" />
                 )}
               </button>
             </div>

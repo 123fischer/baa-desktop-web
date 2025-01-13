@@ -13,16 +13,11 @@ export default {
       },
     },
     extend: {
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic':
-          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-      },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
+      // backgroundImage: {
+      //   'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      //   'gradient-conic':
+      //     'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      // },
       colors: {
         primary: {
           DEFAULT: 'var(--color-primary)',
@@ -31,48 +26,48 @@ export default {
           DEFAULT: 'var(--color-accent)',
         },
         dark: {
-          DEFAULT: 'var(--color-dark-grey)',
+          DEFAULT: 'var(--color-dark)',
         },
         'light-dark': 'var(--color-light-grey)',
         neutral: {
-          300: 'var(--color-neutral-3)',
-          200: 'var(--color-neutral-2)',
-          100: 'var(--color-neutral-1)',
+          tint: 'var(--color-neutral-tint)',
+          DEFAULT: 'var(--color-neutral)',
+          shade: 'var(--color-neutral-shade)',
         },
-        blue: {
-          100: 'var(--color-blue-1)',
+        secondary: {
+          DEFAULT: 'var(--color-secondary)',
         },
-        green: {
-          100: 'var(--color-green-1)',
-          300: 'var(--color-green-2)',
+        success: {
+          DEFAULT: 'var(--color-success)',
+          tint: 'var(--color-success-tint)',
         },
-        red: {
-          100: 'var(--color-red-1)',
-          300: 'var(--color-red-2)',
-        },
-      },
-      keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-        },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
+        error: {
+          DEFAULT: 'var(--color-error)',
+          tint: 'var(--color-error-tint)',
         },
       },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-      },
+      // keyframes: {
+      //   'accordion-down': {
+      //     from: {
+      //       height: '0',
+      //     },
+      //     to: {
+      //       height: 'var(--radix-accordion-content-height)',
+      //     },
+      //   },
+      //   'accordion-up': {
+      //     from: {
+      //       height: 'var(--radix-accordion-content-height)',
+      //     },
+      //     to: {
+      //       height: '0',
+      //     },
+      //   },
+      // },
+      // animation: {
+      //   'accordion-down': 'accordion-down 0.2s ease-out',
+      //   'accordion-up': 'accordion-up 0.2s ease-out',
+      // },
     },
   },
   plugins: [require('tailwindcss-animate')],

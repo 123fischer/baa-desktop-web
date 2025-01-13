@@ -28,7 +28,7 @@ const OutBidModal = ({ isOpen, onDismiss }: BidModalProps) => {
             <Button
               variant="default"
               onClick={onDismiss}
-              className="bg-neutral-100 hover:bg-neutral-200 w-9 h-9 px-0 py-0 rounded-full"
+              className="bg-neutral-tint hover:bg-neutral w-9 h-9 px-0 py-0 rounded-full"
             >
               <XIcon />
             </Button>

@@ -110,7 +110,7 @@ const SearchFilters = () => {
       </Select>
       {hasSelectedFilter && (
         <Button
-          className="flex items-center gap-2 font-normal bg-blue-100 text-black"
+          className="flex items-center gap-2 font-normal bg-secondary text-black"
           onClick={resetFilters}
         >
           Reset

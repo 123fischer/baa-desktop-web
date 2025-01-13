@@ -93,7 +93,7 @@ const BidModal = ({
           <Button
             variant="default"
             onClick={handleOnDismiss}
-            className="absolute right-4 top-4 bg-neutral-100 w-8 h-8 px-0 py-0  hover:bg-neutral-200 rounded-full"
+            className="absolute right-4 top-4 bg-neutral-tint w-8 h-8 px-0 py-0  hover:bg-neutral rounded-full"
           >
             <XIcon />
           </Button>
@@ -117,11 +117,11 @@ const BidModal = ({
 
           {!confirmBid && (
             <>
-              <div className="mb-6 border-t-[1px] border-t-neutral-200 pt-6">
+              <div className="mb-6 border-t-[1px] border-t-neutral pt-6">
                 <label className="block text-[15px] mb-2 text-dark">
                   Your maximum bid
                 </label>
-                <div className="flex items-center gap-2 border-[1px] rounded-lg border-neutral-300 px-4 py-2">
+                <div className="flex items-center gap-2 border-[1px] rounded-lg border-neutral-shade px-4 py-2">
                   <span className="text-light-dark">CHF</span>
                   <input
                     type="text"
@@ -136,13 +136,13 @@ const BidModal = ({
                   />
                   <button
                     onClick={handleIncrementBid}
-                    className="bg-neutral-100 hover:bg-neutral-200 px-5 py-2 text-[15px] rounded-lg font-semibold text-dark"
+                    className="bg-neutral-tint hover:bg-neutral px-5 py-2 text-[15px] rounded-lg font-semibold text-dark"
                   >
                     + CHF {BID_INCREMENT}
                   </button>
                   <button
                     onClick={handleDecrementBid}
-                    className="bg-neutral-100 hover:bg-neutral-200 px-5 py-2 text-[15px] rounded-lg font-semibold text-dark"
+                    className="bg-neutral-tint hover:bg-neutral px-5 py-2 text-[15px] rounded-lg font-semibold text-dark"
                   >
                     - CHF {BID_INCREMENT}
                   </button>
@@ -152,7 +152,7 @@ const BidModal = ({
                 </p>
               </div>
 
-              <div className="bg-neutral-100 border-[1px] border-neutral-200 px-6 py-5 rounded-lg mb-6">
+              <div className="bg-neutral-tint border-[1px] border-neutral px-6 py-5 rounded-lg mb-6">
                 <p className="text-light-dark text-center text-[16px]">
                   Minimum Bid increment is CHF {BID_INCREMENT.toLocaleString()}.
                   If you bid more than CHF {formatNumber(details.minimumBid)} by
@@ -193,7 +193,7 @@ const BidModal = ({
           )}
           {confirmBid && (
             <div className="pt-2">
-              <div className="flex-col gap-2 bg-neutral-100 border-[1px] border-neutral-200 px-6 py-5 rounded-lg mb-8 flex justify-center text-center font-semibold">
+              <div className="flex-col gap-2 bg-neutral-tint border-[1px] border-neutral px-6 py-5 rounded-lg mb-8 flex justify-center text-center font-semibold">
                 <span className="text-[18px] text-light-dark">Check bid</span>
                 <h1 className="text-[30px] text-dark">
                   CHF {formatNumber(currentBid)}
