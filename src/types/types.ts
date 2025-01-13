@@ -1,10 +1,10 @@
 export type Filters = {
-  search: string;
-  make: string;
-  year: string;
-  mileage: string;
-  location: string;
-  sortBy: string;
+  search: string | undefined;
+  make: string | undefined;
+  year: string | undefined;
+  mileage: string | undefined;
+  location: string | undefined;
+  sortBy: string | undefined;
 };
 
 export interface CarAuction {
