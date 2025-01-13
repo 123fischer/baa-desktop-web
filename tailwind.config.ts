@@ -33,6 +33,7 @@ export default {
         dark: {
           DEFAULT: 'var(--color-dark-grey)',
         },
+        'light-dark': 'var(--color-light-grey)',
         neutral: {
           300: 'var(--color-neutral-3)',
           200: 'var(--color-neutral-2)',
@@ -40,6 +41,14 @@ export default {
         },
         blue: {
           100: 'var(--color-blue-1)',
+        },
+        green: {
+          100: 'var(--color-green-1)',
+          300: 'var(--color-green-2)',
+        },
+        red: {
+          100: 'var(--color-red-1)',
+          300: 'var(--color-red-2)',
         },
       },
       keyframes: {

@@ -10,6 +10,7 @@ import { i18n } from '@/i18n/routing';
 import { Locales } from '@/types/types';
 
 import '@/styles/tailwind.css';
+import '@/styles/globals.scss';
 
 export const metadata: Metadata = {
   title: 'Create Next App',

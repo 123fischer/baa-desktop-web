@@ -2,17 +2,8 @@ import NextAuth from 'next-auth';
 import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { signInWithCustomToken } from 'firebase/auth';
-import { auth } from './firebase';
-
-import { DefaultSession } from 'next-auth';
 import { JWT } from 'next-auth/jwt';
-
-declare module 'next-auth' {
-  interface Session extends DefaultSession {
-    accessToken: string;
-    refreshToken: string;
-  }
-}
+import { auth } from './firebase';
 
 export const authOptions: AuthOptions = {
   pages: {
@@ -64,7 +55,7 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.accessToken = token.accessToken as string;
+        session.accessToken = token.accessToken as JWT;
       }
       return session;
     },

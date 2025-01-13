@@ -1,21 +1,57 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useFilters } from '@/contexts/FilterContext';
-import { filterAuctions } from '@/utils/filters';
-import { CarAuction } from '@/types/types';
+import { Auction } from '@/types/types';
 import { useDebounce } from './useDebounce';
-import { mockAuctions } from '@/utils/mock';
+import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { getRunningAuctions } from '@/api/api';
+import { DEFAULT_FILTERS, DEFAULT_PAGE_SIZE } from '@/constants/constants';
+import { Category, SortState } from '@/enums';
+
+
 
 const useCarAuction = () => {
-  const [allAuctions, setAllAuctions] = useState<CarAuction[]>(mockAuctions);
-  const { filters } = useFilters();
+  const [allAuctions, setAllAuctions] = useState<Auction[]>([]);
+  const { filters, updateFilter } = useFilters();
+  const { data: session, status: sessionStatus } = useSession();
+
+  const isLoggedIn = !!session?.accessToken;
 
   // Debounce the search filter to prevent too many re-renders
   const debouncedFilters = {
     ...filters,
-    search: useDebounce(filters.search, 300),
+    search: useDebounce(filters?.search, 300),
   };
+
+  const {
+    data: auctionsList,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['auctionList', session?.accessToken],
+    queryFn: () => {
+      return (
+        isLoggedIn &&
+        getRunningAuctions(
+          {
+            size: DEFAULT_PAGE_SIZE,
+            category: Category.Running,
+            filters: DEFAULT_FILTERS,
+            order: SortState.Desc,
+          },
+          session.accessToken
+        )
+      );
+    },
+  });
+
+  useEffect(() => {
+    if (auctionsList) {
+      setAllAuctions(auctionsList?.content);
+    }
+  }, [auctionsList]);
 
   const toggleFavorite = (id: string) => {
     setAllAuctions((auctions) =>
@@ -27,12 +63,12 @@ const useCarAuction = () => {
     );
   };
 
-  const filteredAuctions = useMemo(() => {
-    return filterAuctions(allAuctions, debouncedFilters);
-  }, [allAuctions, debouncedFilters]);
+  // const filteredAuctions = useMemo(() => {
+  //   return filterAuctions(allAuctions, debouncedFilters);
+  // }, [allAuctions, debouncedFilters]);
 
   return {
-    auctions: filteredAuctions,
+    auctions: allAuctions,
     toggleFavorite,
   };
 };
