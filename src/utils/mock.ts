@@ -1,4 +1,4 @@
-export interface CarAuction {
+export interface Auction {
   id: string;
   image: string;
   brand: any;
@@ -11,7 +11,7 @@ export interface CarAuction {
   isFavorite: boolean;
 }
 
-export const mockAuctions: CarAuction[] = [
+export const mockAuctions: Auction[] = [
   {
     id: '1',
     image:

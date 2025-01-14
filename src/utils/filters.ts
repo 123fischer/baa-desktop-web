@@ -1,10 +1,7 @@
-import { CarAuction, Filters } from '@/types/types';
+import { Auction, Filters } from '@/types/types';
 import { mockAuctions } from './mock';
 
-type FilterKey = keyof Pick<
-  CarAuction,
-  'year' | 'mileage' | 'location' | 'brand'
->;
+type FilterKey = keyof Pick<Auction, 'year' | 'mileage' | 'location' | 'brand'>;
 
 export const getUniqueValues = (key: FilterKey): string[] => {
   return Array.from(
@@ -18,9 +15,9 @@ export const getUniqueValues = (key: FilterKey): string[] => {
 };
 
 export const filterAuctions = (
-  auctions: CarAuction[],
+  auctions: Auction[],
   filters: Filters
-): CarAuction[] => {
+): Auction[] => {
   let filtered = auctions.filter((auction) => {
     if (filters.search && filters.search.trim()) {
       const searchTerm = filters.search.trim().toLowerCase();

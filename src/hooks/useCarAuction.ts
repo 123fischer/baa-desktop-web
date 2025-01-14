@@ -3,12 +3,12 @@
 import { useState, useMemo } from 'react';
 import { useFilters } from '@/contexts/FilterContext';
 import { filterAuctions } from '@/utils/filters';
-import { CarAuction } from '@/types/types';
+import { Auction } from '@/types/types';
 import { useDebounce } from './useDebounce';
 import { mockAuctions } from '@/utils/mock';
 
 const useCarAuction = () => {
-  const [allAuctions, setAllAuctions] = useState<CarAuction[]>(mockAuctions);
+  const [allAuctions, setAllAuctions] = useState<Auction[]>(mockAuctions);
   const { filters } = useFilters();
 
   // Debounce the search filter to prevent too many re-renders

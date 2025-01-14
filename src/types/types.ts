@@ -7,7 +7,7 @@ export type Filters = {
   sortBy: string | undefined;
 };
 
-export interface CarAuction {
+export interface Auction {
   id: string;
   image: string;
   brand: any;
