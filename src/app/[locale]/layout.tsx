@@ -5,7 +5,10 @@ import ReactQueryClientProvider from '@/contexts/QueryClientProvider';
 import TranslationsProvider from '@/contexts/TranslationspRrovider';
 import SessionClientProvider from '@/contexts/SessionClientProvider';
 
+import { FilterProvider } from '@/contexts/FilterContext';
 import { MobileBanner } from '@/components/MobileBanner';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { i18n } from '@/i18n/routing';
 import { Locales } from '@/types/types';
 
@@ -38,8 +41,16 @@ export default async function RootLayout({
         <ReactQueryClientProvider>
           <SessionClientProvider session={session}>
             <TranslationsProvider locale={locale as Locales}>
-              {children}
-              <MobileBanner />
+              <FilterProvider>
+                <div className="min-h-screen bg-white">
+                  <Header />
+                  <main className="container mx-auto px-4 py-8">
+                    {children}
+                  </main>
+                  <Footer />
+                  <MobileBanner />
+                </div>
+              </FilterProvider>
             </TranslationsProvider>
           </SessionClientProvider>
         </ReactQueryClientProvider>

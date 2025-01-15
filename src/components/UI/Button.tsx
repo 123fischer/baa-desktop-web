@@ -12,8 +12,8 @@ const buttonVariants = cva(
       variant: {
         default: 'bg-primary text-white hover:bg-primary/90',
         outline:
-          'border border-neutral bg-white hover:bg-neutral-tent hover:text-dark',
-        secondary: 'bg-neutral-tint text-dark hover:bg-neutral/80',
+          'border border-neutral bg-white hover:bg-neutral-tint hover:text-dark',
+        secondary: 'bg-neutral text-dark hover:bg-neutral/80',
       },
       size: {
         default: 'h-10 px-4 py-2',
