@@ -51,7 +51,7 @@ const UnSuccessfulBidModal = ({
               <span className="font-semibold text-light-dark text-[17px]">
                 Bid Error!
               </span>
-              <span className="font-bold text-dark text-[26px]">
+              <span className="font-semibold text-dark text-[30px]">
                 CHF {formatNumber(bid)}
               </span>
             </div>

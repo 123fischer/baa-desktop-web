@@ -1,4 +1,6 @@
 'use client';
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 import CloseIcon from 'public/icons/close.svg';
 import { Button } from '@/components/UI/Button';
@@ -11,7 +13,6 @@ import {
 } from '@/components/UI/Select';
 import { useFilters } from '@/contexts/FilterContext';
 import { cn } from '@/utils/utlis';
-import { useEffect, useState } from 'react';
 import { FilterOptions } from '@/types/filters';
 import { getRunningAuctions } from '@/api/api';
 import {
@@ -21,7 +22,6 @@ import {
 } from '@/constants/constants';
 import { Category, SortState } from '@/enums';
 import { formatFilters } from '@/hooks/useCarAuction';
-import { useSession } from 'next-auth/react';
 
 const INITIAL_FILTER_OPTIONS = {
   brands: [],

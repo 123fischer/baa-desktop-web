@@ -88,7 +88,6 @@ const BidModal = ({
   }, [isSuccess]);
 
   if (!isOpen) return null;
-
   return (
     <AnimatePresence>
       <motion.div
@@ -199,6 +198,7 @@ const BidModal = ({
                 onClick={handlePlaceBid}
                 variant={'default'}
                 className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold text-[15px]"
+                disabled={Number.isNaN(currentBid) || currentBid < minimumBid}
               >
                 Place bid
               </Button>
