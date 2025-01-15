@@ -3,55 +3,56 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, m, motion } from 'framer-motion';
 import { Button } from '../UI/Button';
+import LoadingComponent from '../UI/Loading';
 import { BID_INCREMENT } from '@/constants/constants';
 import { formatNumber } from '@/utils/utlis';
 import XIcon from 'public/icons/xIcon.svg';
-
+import { Auction } from '@/types/types';
 
 interface BidModalProps {
   isOpen: boolean;
   onDismiss: () => void;
-  onConfirm: () => void;
-  details: {
-    carName: string;
-    carDetails: string;
-    imageUrl: string;
-    minimumBid: number;
-  };
+  onConfirmBid: () => void;
+  bidDetails: Auction | null;
   currentBid: number;
   setCurrentBid: (value: any) => void;
   useBidAgent: boolean;
   setUseBidAgent: (value: boolean) => void;
+  isPending: boolean;
+  isSuccess: boolean;
 }
 
 const BidModal = ({
   isOpen,
   onDismiss,
-  onConfirm,
-  details,
+  onConfirmBid,
+  bidDetails,
   currentBid,
   setCurrentBid,
   useBidAgent,
   setUseBidAgent,
+  isPending,
+  isSuccess,
 }: BidModalProps) => {
   const [confirmBid, setConfirmBid] = useState(false);
-  const [inputText, setInputText] = useState<any>();
+
+  const minimumBid = !!bidDetails?.bidList?.length
+    ? Math.max(...bidDetails?.bidList?.map((ele: any) => ele.bid)) + 100
+    : 100;
 
   const handleIncrementBid = () => {
     setCurrentBid((prev: any) => prev + BID_INCREMENT);
-    setInputText((prev: any) => prev + BID_INCREMENT);
   };
 
   const handleDecrementBid = () => {
-    if (currentBid - BID_INCREMENT >= details?.minimumBid) {
+    if (currentBid - BID_INCREMENT >= minimumBid) {
       setCurrentBid((prev: any) => prev - BID_INCREMENT);
-      setInputText((prev: any) => prev - BID_INCREMENT);
     }
   };
 
   const handleOnDismiss = () => {
     setConfirmBid(false);
-    setInputText(details.minimumBid);
+    setCurrentBid(minimumBid);
     onDismiss?.();
   };
 
@@ -59,20 +60,32 @@ const BidModal = ({
     setConfirmBid(true);
   };
   const handleConfirmBid = () => {
-    setConfirmBid(false);
-    onConfirm?.();
+    onConfirmBid?.();
   };
 
-  const formatTextInputValue = (num: string) => {
-    const NUM = num.endsWith('00') ? num.slice(0, -2) : num;
-    setInputText(parseInt(NUM + '00'));
+  const formatTextInput = (value: string) => {
+    const prevValue = currentBid ? (currentBid / 100).toString() : '';
+    const lastDigit = value.slice(-1);
+    if (value.length < currentBid.toString().length) {
+      if (parseInt(value) % 100 === 0) {
+        setCurrentBid(parseInt(value));
+      } else {
+        setCurrentBid(
+          parseInt(
+            value.length === 1 ? value : value.substring(0, value.length - 2)
+          ) * 100
+        );
+      }
+    } else {
+      setCurrentBid(parseInt(prevValue.concat(lastDigit)) * 100);
+    }
   };
 
   useEffect(() => {
-    if (details.minimumBid) {
-      setInputText(currentBid);
+    if (isSuccess) {
+      setConfirmBid(false);
     }
-  }, [details.minimumBid]);
+  }, [isSuccess]);
 
   if (!isOpen) return null;
 
@@ -103,15 +116,15 @@ const BidModal = ({
           </h2>
           <div className="flex gap-5 mb-7">
             <img
-              src={details?.imageUrl}
-              alt={details?.carName}
+              src={bidDetails?.images?.[0]}
+              alt={bidDetails?.title}
               className="w-40 h-31 object-cover rounded-lg"
             />
             <div className="flex flex-col gap-2">
               <h3 className="text-xl font-semibold text-dark">
-                {details?.carName}
+                {bidDetails?.title}
               </h3>
-              <p className="text-light-dark">{details?.carDetails}</p>
+              <p className="text-light-dark">{`${bidDetails?.details?.mileage} km, ${bidDetails?.details?.firstRegistration}`}</p>
             </div>
           </div>
 
@@ -125,15 +138,15 @@ const BidModal = ({
                   <span className="text-light-dark">CHF</span>
                   <input
                     type="text"
-                    id={details?.carName}
-                    value={currentBid ? formatNumber(inputText) : ''}
+                    id={bidDetails?.title}
+                    value={currentBid ? formatNumber(currentBid) : ''}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/'/g, '');
-                      setCurrentBid(value);
-                      formatTextInputValue(value);
+                      const unformattedValue = e.target.value.replace(/'/g, '');
+                      formatTextInput(unformattedValue);
                     }}
-                    className="flex-1 border-1 rounded-lg py-2 text-left text-[15px] focus:outline-none "
+                    className="border-1 flex-1 rounded-lg py-2 text-left text-[15px] focus:outline-none "
                   />
+
                   <button
                     onClick={handleIncrementBid}
                     className="bg-neutral-tint hover:bg-neutral px-5 py-2 text-[15px] rounded-lg font-semibold text-dark"
@@ -148,15 +161,15 @@ const BidModal = ({
                   </button>
                 </div>
                 <p className="text-light-dark text-[14px] mt-1">
-                  Minimum bid CHF {formatNumber(details.minimumBid)}
+                  Minimum bid CHF {formatNumber(minimumBid)}
                 </p>
               </div>
 
               <div className="bg-neutral-tint border-[1px] border-neutral px-6 py-5 rounded-lg mb-6">
                 <p className="text-light-dark text-center text-[16px]">
                   Minimum Bid increment is CHF {BID_INCREMENT.toLocaleString()}.
-                  If you bid more than CHF {formatNumber(details.minimumBid)} by
-                  default the{' '}
+                  If you bid more than CHF {formatNumber(minimumBid)} by default
+                  the{' '}
                   <a className="underline" href="">
                     Bid Agent{' '}
                   </a>{' '}
@@ -201,7 +214,10 @@ const BidModal = ({
                 <span className="text-dark font-light ">
                   Plus{' '}
                   <span className="font-bold">
-                    CHF {Math.max(99, Math.trunc(0.0099 * currentBid))}{' '}
+                    CHF{' '}
+                    {formatNumber(
+                      Math.max(99, Math.trunc(0.0099 * currentBid))
+                    )}{' '}
                   </span>{' '}
                   auction fee for a successful purchase.
                 </span>
@@ -216,8 +232,16 @@ const BidModal = ({
                 >
                   Edit bid
                 </Button>
-                <Button onClick={handleConfirmBid} className="w-[50%] h-11">
-                  Confirm bid
+                <Button
+                  onClick={handleConfirmBid}
+                  disabled={isPending}
+                  className="w-[50%] h-11 justify-center items-center disabled:opacity-100 "
+                >
+                  {!isPending ? (
+                    'Confirm bid'
+                  ) : (
+                    <LoadingComponent {...{ color: 'text-white' }} />
+                  )}
                 </Button>
               </div>
             </div>

@@ -2,11 +2,17 @@ import { Category } from '@/enums';
 
 export type Filters = {
   brand: string | null;
-  year: string | null;
   location: string | null;
-  mileage: string | null;
-  search: string | null;
   sortBy: string | null;
+  firstRegistration?: number[] | null;
+  mileage?: number[];
+};
+
+export type Selections = {
+  yearTo: string | null;
+  yearFrom: string | null;
+  mileageTo: string | null;
+  mileageFrom: string | null;
 };
 
 export type Details = {
@@ -51,7 +57,9 @@ export type Auction = {
 
 export type AuctionList = {
   content: Auction[];
-  filters: Filters;
+  filters: {
+    brands: string[];
+  };
   totals: {
     favorite: number;
     running: number;
@@ -68,6 +76,7 @@ export type RunningAuctionBody = {
   order: string;
   category: Category;
   size: number;
+  cursor?: number;
   filters: {
     brand?: FilterElement[];
     location?: FilterElement[];

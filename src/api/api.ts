@@ -2,7 +2,7 @@ import { JWT } from 'next-auth/jwt';
 import Error from 'next/error';
 import baseAxios from '@/utils/axios';
 import * as routes from './routes';
-import { RunningAuctionBody } from '@/types/types';
+import {  RunningAuctionBody } from '@/types/types';
 
 export const getUserWebToken = () =>
   baseAxios

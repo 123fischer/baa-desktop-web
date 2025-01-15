@@ -1,52 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
 
 import { useFilters } from '@/contexts/FilterContext';
-import { useDebounce } from './useDebounce';
 import { Auction, Filters } from '@/types/types';
 import { getRunningAuctions, toggleFavorites } from '@/api/api';
 import { DEFAULT_FILTERS, DEFAULT_PAGE_SIZE } from '@/constants/constants';
 import { Category, SortState } from '@/enums';
-import { FilterOptions } from '@/types/filters';
 
-const INITIAL_FILTER_OPTIONS = {
-  brands: [],
-  years: [],
-  mileages: [],
-  locations: [],
-};
-
-const formatFilterOptions = (_options: string[] | number[], key?: string) =>
-  _options
-    ?.filter((el) => {
-      return el !== null;
-    })
-    ?.map((el) => {
-      return {
-        label: typeof el === 'number' ? el.toString() : el,
-        value: el,
-      };
-    });
-
-const formatFilters = (_filters: Filters | null) => {
+export const formatFilters = (_filters: Filters | null) => {
   const result: any = {};
   Object.assign(result, DEFAULT_FILTERS);
   if (_filters) {
     Object.entries(_filters)
       .filter(([key, value]) => !!value)
       .map(([key, value]) => {
-        const FILTER_KEY = key === 'year' ? 'firstRegistration' : key;
-        if (FILTER_KEY === 'firstRegistration' || FILTER_KEY === 'mileage') {
-          result[FILTER_KEY] = [
-            {
-              key: `${value}`,
-              value: value,
-            },
-            result[FILTER_KEY][1],
-          ];
+        const FILTER_KEY =
+          key === 'yearTo' || key === 'yearFrom' ? 'firstRegistration' : key;
+        if (
+          (FILTER_KEY === 'firstRegistration' || FILTER_KEY === 'mileage') &&
+          typeof value !== 'string'
+        ) {
+          const arrValue = value?.map((el: any) => {
+            return {
+              key: `${el}`,
+              value: el,
+            };
+          });
+          Object.assign(result, {
+            [`${FILTER_KEY}`]: arrValue,
+          });
         } else {
           return Object.assign(result, {
             [`${FILTER_KEY}`]: [
@@ -63,78 +48,59 @@ const formatFilters = (_filters: Filters | null) => {
 };
 
 const useCarAuction = () => {
-  const [allAuctions, setAllAuctions] = useState<Auction[]>([]);
-  const { filters } = useFilters();
+  const { filters,sorting } = useFilters();
   const { data: session } = useSession();
-  const [options, setOptions] = useState<FilterOptions>(INITIAL_FILTER_OPTIONS);
 
   const isLoggedIn = !!session?.accessToken;
 
-  // Debounce the search filter to prevent too many re-renders
-  const debouncedFilters = {
-    ...filters,
-    search: useDebounce(filters?.search, 300),
-  };
+  const getAuctionsList = ({ page = 0 }: { page?: number }) =>
+    getRunningAuctions(
+      {
+        size: DEFAULT_PAGE_SIZE,
+        category: Category.Running,
+        filters: formatFilters(filters),
+        order: sorting,
+        cursor: page,
+      },
+      session?.accessToken 
+    );
 
   const {
     data: auctionsList,
     isLoading,
-    error,
     refetch,
-  } = useQuery({
-    queryKey: ['auctionList', session?.accessToken, filters],
-    queryFn: () => {
-      return (
-        isLoggedIn &&
-        getRunningAuctions(
-          {
-            size: DEFAULT_PAGE_SIZE,
-            category: Category.Running,
-            filters: formatFilters(filters),
-            order: SortState.Desc,
-          },
-          session.accessToken
-        )
-      );
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['auctionList', session?.accessToken, filters,sorting],
+    queryFn: ({ pageParam = 0 }) =>
+      isLoggedIn && getAuctionsList({ page: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const totalPages =
+        Math.ceil(
+          lastPage.totals?.[`${Category.Running}`] / DEFAULT_PAGE_SIZE
+        ) - 1;
+      const nextPage =
+        totalPages > lastPage.cursor ? lastPage.cursor + 1 : undefined;
+      return nextPage;
     },
   });
 
-  useEffect(() => {
-    if (auctionsList) {
-      setAllAuctions(auctionsList?.content);
-      setOptions({
-        brands: formatFilterOptions(auctionsList?.filters?.brands, 'brand'),
-        locations: formatFilterOptions(
-          auctionsList?.filters?.locations,
-          'location'
-        ),
-        mileages: formatFilterOptions(
-          auctionsList?.filters?.mileages,
-          'mileage'
-        ),
-        years: formatFilterOptions(
-          auctionsList?.filters?.firstRegistrations,
-          'year'
-        ),
-      });
-    }
-  }, [auctionsList]);
-
-  useEffect(() => {
-    formatFilters(filters);
-  }, [filters]);
+  const auctions: Auction[] = useMemo(
+    () =>
+      auctionsList?.pages.reduce(
+        (prev: any, cur: any) => [...prev, ...(cur?.content ?? [])],
+        []
+      ) ?? [],
+    [auctionsList]
+  );
 
   const { mutate: toggleFavorite } = useMutation({
     mutationFn: (id: string) =>
       toggleFavorites({ lotId: id }, session?.accessToken),
-    onSuccess(_, id) {
-      setAllAuctions((auctions) =>
-        auctions.map((auction) =>
-          auction.id === id
-            ? { ...auction, isFavorite: !auction.isFavorite }
-            : auction
-        )
-      );
+    onSuccess() {
+      refetch();
     },
     onError(error) {
       return new Error(error.message);
@@ -146,10 +112,12 @@ const useCarAuction = () => {
   };
 
   return {
-    auctions: allAuctions,
-    filterOptions: options,
+    auctions,
     onToggleFavorite,
     refetch,
+    hasNextPage,
+    fetchNextPage,
+    isLoading
   };
 };
 

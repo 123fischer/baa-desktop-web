@@ -17,9 +17,21 @@ import SuccessfulBidModal from '../Modals/SuccessfulBidModal';
 import OutBidModal from '../Modals/OutBidModal';
 
 import { formatNumber } from '@/utils/utlis';
+import { usePageInfiniteLoader } from '@/hooks/hooks';
+import LoadingComponent from '../UI/Loading';
+import { Auction } from '@/types/types';
+import { useFilters } from '@/contexts/FilterContext';
 
 const AuctionList = () => {
-  const { auctions, onToggleFavorite, refetch } = useCarAuction();
+  const {
+    auctions,
+    onToggleFavorite,
+    refetch,
+    fetchNextPage,
+    isLoading,
+    hasNextPage,
+  } = useCarAuction();
+  const { filters } = useFilters();
   const { data: session } = useSession();
   const [showBidModal, setShowBidModal] = useState(false);
   const [successfulBid, setSuccessfulBid] = useState(false);
@@ -27,7 +39,7 @@ const AuctionList = () => {
   const [outBid, setOutBid] = useState(false);
   const [currentBid, setCurrentBid] = useState(100);
   const [useBidAgent, setUseBidAgent] = useState(false);
-  const [bidDetaits, setBidDetails] = useState<any>();
+  const [bidDetails, setBidDetails] = useState<Auction | null>(null);
   const [auctionsTimeLeft, setAuctionsTimeLeft] = useState<
     {
       id: string;
@@ -73,17 +85,22 @@ const AuctionList = () => {
     }
   }, [auctions]);
 
-  const { mutate: placeBid } = useMutation({
+  const {
+    mutate: placeBid,
+    isPending,
+    isSuccess,
+  } = useMutation({
     mutationFn: () =>
       onPlaceBid(
         {
           bid: currentBid,
-          lotId: bidDetaits.id,
+          lotId: bidDetails?.id ?? '',
           manual: !useBidAgent,
         },
         session?.accessToken
       ),
     onSuccess(data) {
+      setShowBidModal(false);
       if (data.outbid) {
         setOutBid(true);
       } else if (data.success) {
@@ -96,12 +113,17 @@ const AuctionList = () => {
     },
   });
 
+  usePageInfiniteLoader(fetchNextPage, !hasNextPage);
+
   const onConfirmBid = async () => {
-    setShowBidModal(false);
     placeBid();
   };
 
-  if (auctions?.length === 0) {
+  if (
+    !Object.values(filters).every((element) => element === null) &&
+    !auctions.length &&
+    !isLoading
+  ) {
     return (
       <div className="text-center py-8">
         <p className="text-neutral-shade">No auctions match your filters.</p>
@@ -109,74 +131,84 @@ const AuctionList = () => {
     );
   }
 
+  const LOADINE_STATE =
+    (!auctions.length && !auctionsTimeLeft.length) || isLoading;
+
   return (
     <>
-      <p className="mb-4 text-primary">{auctions?.length} results</p>
-      <div className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 px-4 py-4 text-sm text-dark border-b">
-        <div />
-        <div>Brand & Model</div>
-        <div>Year</div>
-        <div>Mileage</div>
-        <div>Location</div>
-        <div>Current Bid</div>
-        <div>Time left</div>
-      </div>
+      {LOADINE_STATE && <div className='flex justify-center items-center'><LoadingComponent /></div>}
+      {!LOADINE_STATE && (
+        <>
+          <p className="mb-4 text-primary">{auctions?.length} results</p>
+          <div className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 px-4 py-4 text-sm text-dark border-b">
+            <div />
+            <div>Brand & Model</div>
+            <div>Year</div>
+            <div>Mileage</div>
+            <div>Location</div>
+            <div>Current Bid</div>
+            <div>Time left</div>
+          </div>
 
-      <div className="divide-y divide-neutral">
-        {auctions?.map((auction) => {
-          const MINIMUM_BID = !!auction?.bidList?.length
-            ? Math.max(...auction?.bidList?.map((ele) => ele.bid)) + 100
-            : 100;
+          <div className="divide-y divide-neutral">
+            {auctions?.map((auction, index) => {
+              const MINIMUM_BID = !!auction?.bidList?.length
+                ? Math.max(...auction?.bidList?.map((ele) => ele.bid)) + 100
+                : 100;
 
-          const TIME_LEFT = auctionsTimeLeft.filter(
-            (el) => el.id === auction.id
-          )?.[0]?.timeLeft;
+              const TIME_LEFT = auctionsTimeLeft.filter(
+                (el) => el.id === auction.id
+              )?.[0]?.timeLeft;
 
-          return (
-            <div
-              key={auction?.id}
-              className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 items-center px-4 py-4 text-sm hover:bg-neutral-tint"
-            >
-              <Image
-                src={`${auction?.images?.[2]}`}
-                alt={`${auction?.title}`}
-                width={100}
-                height={75}
-                className="rounded-lg"
-              />
-              <div>
-                <h3 className="font-medium">{auction?.title?.split(',')[0]}</h3>
-              </div>
-              <div>{auction?.details.firstRegistration.split('/')[1]}</div>
-              <div>{auction?.details?.mileage} KM</div>
-              <div>{auction?.details?.location}</div>
-              <div>CHF {formatNumber(MINIMUM_BID)}</div>
-              <span className="text-primary truncate">{TIME_LEFT}</span>
-              <Button
-                variant="default"
-                className="bg-primary"
-                onClick={() => {
-                  setBidDetails(auction);
-                  setCurrentBid(MINIMUM_BID);
-                  setShowBidModal(true);
-                }}
-              >
-                Place bid
-              </Button>
-              <button
-                onClick={() => onToggleFavorite(auction.id)}
-                className="p-2 hover:bg-neutral rounded-full m-auto"
-              >
-                {auction.isFavorite ? (
-                  <StarSolidIcon className="w-5 text-accent" />
-                ) : (
-                  <StarOutlineIcon className="w-5 text-neutral-shade" />
-                )}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+              return (
+                <div
+                  key={index}
+                  className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_60px] gap-4 items-center px-4 py-4 text-sm hover:bg-neutral-tint"
+                >
+                  <Image
+                    src={`${auction?.images?.[2]}`}
+                    alt={`${auction?.title}`}
+                    width={100}
+                    height={75}
+                    className="rounded-lg"
+                  />
+                  <div>
+                    <h3 className="font-medium">
+                      {auction?.title?.split(',')[0]}
+                    </h3>
+                  </div>
+                  <div>{auction?.details.firstRegistration.split('/')[1]}</div>
+                  <div>{auction?.details?.mileage} KM</div>
+                  <div>{auction?.details?.location}</div>
+                  <div>CHF {formatNumber(MINIMUM_BID)}</div>
+                  <span className="text-primary truncate">{TIME_LEFT}</span>
+                  <Button
+                    variant="default"
+                    className="bg-primary"
+                    onClick={() => {
+                      setBidDetails(auction);
+                      setCurrentBid(MINIMUM_BID);
+                      setShowBidModal(true);
+                    }}
+                  >
+                    Place bid
+                  </Button>
+                  <button
+                    onClick={() => onToggleFavorite(auction.id)}
+                    className="p-2 hover:bg-neutral rounded-full m-auto"
+                  >
+                    {auction.isFavorite ? (
+                      <StarSolidIcon className="w-5 text-accent" />
+                    ) : (
+                      <StarOutlineIcon className="w-5 text-neutral-shade" />
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <BidModal
         {...{
@@ -184,20 +216,14 @@ const AuctionList = () => {
           onDismiss() {
             setShowBidModal(false);
           },
-          onConfirm: onConfirmBid,
-          details: {
-            carName: bidDetaits?.title,
-            carDetails: `${bidDetaits?.details?.mileage} km, ${bidDetaits?.details?.firstRegistration}`,
-            imageUrl: bidDetaits?.images[0],
-            minimumBid: !!bidDetaits?.bidList?.length
-              ? Math.max(...bidDetaits?.bidList?.map((ele: any) => ele.bid)) +
-                100
-              : 100,
-          },
-          setCurrentBid: (value: any) => setCurrentBid(value),
-          currentBid: currentBid,
+          onConfirmBid,
+          bidDetails,
+          setCurrentBid,
+          currentBid,
           useBidAgent,
-          setUseBidAgent: (value: any) => setUseBidAgent(value),
+          setUseBidAgent,
+          isPending,
+          isSuccess,
         }}
       />
       <UnSuccessfulBidModal
