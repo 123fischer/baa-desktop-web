@@ -4,6 +4,7 @@ export const IS_PRODUCTION = process.env.NEXT_PUBLIC_ENV === 'production';
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const BID_INCREMENT = 100;
+export const USERNAME = 'testMAA';
 
 export const DEFAULT_FILTERS = {
   owner: [

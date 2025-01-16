@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useMutation } from '@tanstack/react-query';
 
-import useCarAuction from '@/hooks/useCarAuction';
+import useAuctions from '@/hooks/useAuctions';
 import { useFilters } from '@/contexts/FilterContext';
 import { usePageInfiniteLoader } from '@/hooks/hooks';
 
@@ -17,32 +16,20 @@ import UnSuccessfulBidModal from '@/components/Modals/UnSuccessfulBidModal';
 import SuccessfulBidModal from '@/components/Modals/SuccessfulBidModal';
 import OutBidModal from '@/components/Modals/OutBidModal';
 
-import { Auction } from '@/types/types';
-import { onPlaceBid } from '@/api/api';
+import { Auction, BidList } from '@/types/types';
 import { onCountDown } from '@/utils/utlis';
 import { useRunningAuctionsListener } from '@/listeners/useRunningAuctionsListener';
-import { useAuctionListener } from '@/listeners/useAuctionListener';
+import useBid from '@/hooks/useBid';
+import useAuction from '@/hooks/useCarAuction';
+import { USERNAME } from '@/constants/constants';
 
 const Auctions = () => {
   const { data: session } = useSession();
   const { hasSelectedFilter } = useFilters();
-  const {
-    auctions,
-    onToggleFavorite,
-    fetchNextPage,
-    hasNextPage,
-    refetch,
-    isLoading,
-    isFetching,
-  } = useCarAuction();
-  const [showBidModal, setShowBidModal] = useState(false);
-  const [successfulBid, setSuccessfulBid] = useState(false);
-  const [unSuccessfulBid, setUnSuccessfulBid] = useState(false);
-  const [outBid, setOutBid] = useState(false);
-  const [currentBid, setCurrentBid] = useState(100);
-  const [useBidAgent, setUseBidAgent] = useState(false);
+  const [useBidAgent, setUseBidAgent] = useState(true);
   const [bidDetails, setBidDetails] = useState<Auction | null>(null);
   const [bidUpdated, setBidUpdated] = useState(false);
+  const [currentBid, setCurrentBid] = useState(100);
   const [auctionsTimeLeft, setAuctionsTimeLeft] = useState<
     | {
         id: string;
@@ -50,6 +37,31 @@ const Auctions = () => {
       }[]
     | null
   >([]);
+  const { getAuction } = useAuction();
+  const {
+    auctions,
+    hasNextPage,
+    onToggleFavorite,
+    fetchNextPage,
+    refetch,
+    setAuctions,
+    isLoading,
+    isFetching,
+  } = useAuctions();
+
+  const {
+    placeBid,
+    unSuccessfulBid,
+    successfulBid,
+    outBid,
+    showBidModal,
+    setSuccessfulBid,
+    setUnSuccessfulBid,
+    setOutBid,
+    setShowBidModal,
+    isPending,
+    isSuccess,
+  } = useBid();
 
   useEffect(() => {
     if (auctions) {
@@ -61,11 +73,11 @@ const Auctions = () => {
         const Auctions_Time_left = auctionsEndTimes.map(
           (ele) => ele && onCountDown(ele.id, ele.endsAt)
         );
-        if (Auctions_Time_left.some((ele) => !!ele.timeLeft)) {
-          refetch();
+        if (Auctions_Time_left.some((ele) => !ele.timeLeft)) {
           setAuctionsTimeLeft(
             Auctions_Time_left.filter((ele) => !!ele.timeLeft)
           );
+          refetch();
         } else {
           setAuctionsTimeLeft(Auctions_Time_left);
         }
@@ -74,34 +86,6 @@ const Auctions = () => {
       return () => clearInterval(intervalId);
     }
   }, [auctions]);
-
-  const {
-    mutate: placeBid,
-    isPending,
-    isSuccess,
-  } = useMutation({
-    mutationFn: () =>
-      onPlaceBid(
-        {
-          bid: currentBid,
-          lotId: bidDetails?.id ?? '',
-          manual: !useBidAgent,
-        },
-        session?.accessToken
-      ),
-    onSuccess(data) {
-      setShowBidModal(false);
-      if (data.outbid) {
-        setOutBid(true);
-      } else if (data.success) {
-        setSuccessfulBid(true);
-      }
-      refetch();
-    },
-    onError() {
-      setUnSuccessfulBid(true);
-    },
-  });
 
   useEffect(() => {
     if (bidUpdated && auctions.length) {
@@ -112,25 +96,62 @@ const Auctions = () => {
   }, [auctions, bidUpdated]);
 
   const onConfirmBid = () => {
-    placeBid();
+    placeBid({
+      currentBid,
+      id: bidDetails?.id ?? '',
+      manual: !useBidAgent,
+    });
   };
-
-  // Subscribe to auctions real-time updates
-  const updateAuctions = () => {
-    refetch();
-  };
-  useRunningAuctionsListener(updateAuctions);
 
   // Subscribe to auctions real-time update
-  const updateBidAuction = () => {
-    setBidUpdated(true);
+  const updateAuctions = async (docIDs?: string[]) => {
+    const auctionsUpdated = await Promise.all(
+      docIDs?.map(async (id) => {
+        const auction = await getAuction(id);
+        return auction;
+      }) || []
+    );
+
+    const newAuctions = auctionsUpdated.filter(
+      (updatedAuction) =>
+        !auctions.some((auction) => auction.id === updatedAuction.id)
+    );
+
+    auctionsUpdated?.map((updated) => {
+      const updatedIndex = auctions.findIndex(
+        (auction) => updated.id === auction.id
+      );
+      if (updatedIndex > -1) {
+        auctions[updatedIndex] = updated;
+      }
+    });
+
+    setAuctions([...newAuctions, ...auctions]);
+
+    if (auctionsUpdated.some((auction) => auction.id === bidDetails?.id)) {
+      const bidList = auctionsUpdated
+        .filter((auction) => auction.id === bidDetails?.id)
+        .map((lot) => lot.bidList as BidList[]);
+
+      const maxBid: any = bidList.filter(
+        (ele: any) =>
+          ele.bid === Math.max(...bidList?.map((ele: any) => ele.bid))
+      );
+      if (maxBid?.username !== USERNAME) {
+        setBidUpdated(true);
+        setBidDetails(
+          auctions.find((item) => item.id === bidDetails?.id) ?? null
+        );
+      }
+    }
   };
 
-  useAuctionListener(bidDetails?.id, updateBidAuction);
+  useRunningAuctionsListener(updateAuctions);
 
   usePageInfiniteLoader(fetchNextPage, !hasNextPage);
 
-  const LOADINE_STATE = isLoading || (!auctions.length && isFetching);
+  const LOADINE_STATE =
+    !session?.accessToken || isLoading || (!auctions.length && isFetching);
 
   const EMPTY_FILTERED_LIST = hasSelectedFilter && !auctions.length;
 
@@ -149,19 +170,19 @@ const Auctions = () => {
         <table className="table-auto w-full">
           {auctions.length ? <Header /> : <tbody />}
           <tbody>
-            {auctions.map((auction) => {
+            {auctions.map((auction, index) => {
               const TIME_LEFT = auctionsTimeLeft?.filter(
                 (el) => el.id === auction.id
               )?.[0]?.timeLeft;
               return (
                 <Row
-                  key={auction.id}
+                  key={index}
                   auction={auction}
                   buttons={[
                     {
                       name: 'Place bid',
-                      onClick: (auctionBid: Auction) => {
-                        setBidDetails(auctionBid);
+                      onClick: () => {
+                        setBidDetails(auction);
                         setShowBidModal(true);
                       },
                     },
@@ -185,14 +206,14 @@ const Auctions = () => {
           },
           onConfirmBid,
           bidDetails,
-          setCurrentBid,
-          currentBid,
           useBidAgent,
           setUseBidAgent,
-          isPending,
-          isSuccess,
           bidUpdated,
           setBidUpdated,
+          currentBid,
+          setCurrentBid,
+          isPending,
+          isSuccess,
         }}
       />
       <UnSuccessfulBidModal

@@ -19,7 +19,7 @@ const Row = ({
   timeLeft = '',
 }: Props) => {
   const MINIMUM_BID = !!auction?.bidList?.length
-    ? Math.max(...auction?.bidList?.map((ele) => ele.bid)) + 100
+    ? Math.max(...auction?.bidList?.map((ele) => ele.bid))
     : 100;
   return (
     <tr className="text-center border-b hover:bg-gray-50">

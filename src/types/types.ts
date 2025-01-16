@@ -33,6 +33,13 @@ export type Details = {
   location: string;
 };
 
+export type BidList = {
+  bid: number;
+  bidAgent: number;
+  createdAt: Date;
+  username: string;
+};
+
 export type Auction = {
   id: string;
   title: string;
@@ -40,7 +47,7 @@ export type Auction = {
   active: boolean;
   canceled?: boolean;
   bid?: number;
-  bidList: any[];
+  bidList: BidList[];
   createdAt: Date;
   scheduledAt?: Date;
   endsAt: Date;

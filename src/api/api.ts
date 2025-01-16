@@ -2,7 +2,7 @@ import { JWT } from 'next-auth/jwt';
 import Error from 'next/error';
 import baseAxios from '@/utils/axios';
 import * as routes from './routes';
-import { RunningAuctionBody } from '@/types/types';
+import { Auction, RunningAuctionBody } from '@/types/types';
 
 export const getUserWebToken = () =>
   baseAxios
@@ -28,6 +28,23 @@ export const getRunningAuctions = (body: RunningAuctionBody, token: JWT) =>
       return new Error(e.message);
     });
 
+export const getLot = (
+  body: {
+    lotId: string;
+  },
+  token: JWT
+) =>
+  baseAxios
+    .post(routes.GET_LOT, body, {
+      headers: {
+        Authorization: 'Bearer ' + token,
+      },
+    })
+    .then((res) => res.data as Auction)
+    .catch((e) => {
+      throw new Error(e.message);
+    });
+
 export const toggleFavorites = async (
   body: {
     lotId: string;
@@ -45,15 +62,15 @@ export const toggleFavorites = async (
 };
 
 // place bid
-export const onPlaceBid = async (
+export const onPlaceBid = (
   body: {
     lotId: string;
     manual: boolean;
     bid: number;
   },
   token: JWT
-) => {
-  return baseAxios
+) =>
+  baseAxios
     .post(routes.PLACE_BID, body, {
       headers: {
         Authorization: 'Bearer ' + token,
@@ -63,4 +80,3 @@ export const onPlaceBid = async (
     .catch((e) => {
       throw new Error(e.message);
     });
-};

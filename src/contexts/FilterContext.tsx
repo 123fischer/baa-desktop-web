@@ -57,8 +57,6 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   );
   const updateSelection = useCallback(
     (key: keyof Selections, value: string | number[] | null) => {
-      console.log('selectionOptionsValues>>', selectionOptionsValues);
-
       setSelectionOptions((prev) => ({ ...prev, [key]: value }));
     },
     []

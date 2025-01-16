@@ -9,7 +9,9 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/app/api/auth/[...nextauth]/firebase';
 
-export const useRunningAuctionsListener = (handler: () => any) => {
+export const useRunningAuctionsListener = (
+  handler: (docIDs?: string[]) => any
+) => {
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -21,9 +23,9 @@ export const useRunningAuctionsListener = (handler: () => any) => {
           where('active', '==', true),
           where('endsAt', '>', Timestamp.now())
         ),
-        () => {
+        (snapshot) => {
           if (!initial) {
-            handler?.();
+            handler?.(snapshot.docChanges().map((el) => el.doc.id));
           } else {
             initial = false;
           }

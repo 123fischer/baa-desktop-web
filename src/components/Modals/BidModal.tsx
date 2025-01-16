@@ -14,14 +14,14 @@ interface BidModalProps {
   onDismiss: () => void;
   onConfirmBid: () => void;
   bidDetails: Auction | null;
-  currentBid: number;
-  setCurrentBid: (value: any) => void;
   useBidAgent: boolean;
   setUseBidAgent: (value: boolean) => void;
-  isPending: boolean;
-  isSuccess: boolean;
   bidUpdated?: boolean;
   setBidUpdated: (value: boolean) => void;
+  setCurrentBid: (value: any) => void;
+  currentBid: number;
+  isSuccess: boolean;
+  isPending: boolean;
 }
 
 const BidModal = ({
@@ -29,14 +29,14 @@ const BidModal = ({
   onDismiss,
   onConfirmBid,
   bidDetails,
-  currentBid,
-  setCurrentBid,
   useBidAgent,
   setUseBidAgent,
-  isPending,
-  isSuccess,
   bidUpdated,
   setBidUpdated,
+  currentBid,
+  setCurrentBid,
+  isSuccess,
+  isPending,
 }: BidModalProps) => {
   const [confirmBid, setConfirmBid] = useState(false);
   const [minimumBid, setMinimumBid] = useState<number>(100);
@@ -52,10 +52,15 @@ const BidModal = ({
     }
   };
 
-  const handleOnDismiss = () => {
+  const initialStates = () => {
     setConfirmBid(false);
-    setCurrentBid(minimumBid);
     setBidUpdated(false);
+    setWarning(false);
+  };
+
+  const handleOnDismiss = () => {
+    initialStates();
+    setCurrentBid(minimumBid);
     onDismiss?.();
   };
 
@@ -85,6 +90,10 @@ const BidModal = ({
   };
 
   useEffect(() => {
+    initialStates();
+  }, []);
+
+  useEffect(() => {
     if (bidDetails) {
       const MINIMUM_BID = !!bidDetails?.bidList?.length
         ? Math.max(...bidDetails?.bidList?.map((ele: any) => ele.bid)) + 100
@@ -112,7 +121,7 @@ const BidModal = ({
 
   useEffect(() => {
     if (isSuccess) {
-      setConfirmBid(false);
+      initialStates();
     }
   }, [isSuccess]);
 

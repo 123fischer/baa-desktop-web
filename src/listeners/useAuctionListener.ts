@@ -17,7 +17,7 @@ export const useAuctionListener = (
       let initial = true;
       const unsubscribe = onSnapshot(
         query(collection(db, 'auction'), where('id', '==', id)),
-        (snapShot) => {
+        () => {
           if (!initial) {
             handler();
           } else {

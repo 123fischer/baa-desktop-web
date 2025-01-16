@@ -4,8 +4,8 @@ import { getServerSession } from 'next-auth';
 import ReactQueryClientProvider from '@/contexts/QueryClientProvider';
 import TranslationsProvider from '@/contexts/TranslationsProvider';
 import SessionClientProvider from '@/contexts/SessionClientProvider';
-
 import { FilterProvider } from '@/contexts/FilterContext';
+
 import { MobileBanner } from '@/components/MobileBanner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
