@@ -7,7 +7,7 @@ import {
   onSnapshot,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/app/api/auth/[...nextauth]/firebase';
+import { db } from '@/utils/firebase';
 
 export const useRunningAuctionsListener = (
   handler: (docIDs?: string[]) => any

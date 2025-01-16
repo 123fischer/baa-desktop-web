@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@/app/api/auth/[...nextauth]/firebase';
+import { db } from '@/utils/firebase';
 import { Auction } from '@/types/types';
 
 export const useAuctionListener = (
