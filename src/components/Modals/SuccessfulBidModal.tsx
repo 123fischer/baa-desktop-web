@@ -12,7 +12,6 @@ interface BidModalProps {
 }
 const SuccessfulBidModal = ({ isOpen, onDismiss, bid }: BidModalProps) => {
   if (!isOpen) return null;
-
   return (
     <AnimatePresence>
       <motion.div
@@ -45,7 +44,7 @@ const SuccessfulBidModal = ({ isOpen, onDismiss, bid }: BidModalProps) => {
               <span className="font-semibold text-light-dark text-[17px]">
                 Bid Success!
               </span>
-              <span className="font-semibold text-dark text-[32px]">
+              <span className="font-semibold text-dark text-[35px]">
                 CHF {formatNumber(bid)}
               </span>
             </div>

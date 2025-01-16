@@ -40,7 +40,6 @@
     "node-fetch": "^3.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-stomp-hooks": "^3.0.1",
     "sass": "^1.83.1",
     "sass-loader": "^16.0.4",
     "server-only": "^0.0.1",

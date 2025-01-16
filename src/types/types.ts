@@ -30,8 +30,8 @@ export type Details = {
   exteriorColor: string;
   exteriorType: string;
   desiredPrice: number;
-
-}
+  location: string;
+};
 
 export type Auction = {
   id: string;

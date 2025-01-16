@@ -8,7 +8,7 @@ import NoResults from '@/components/AuctionTable/NoResults';
 import SearchFilters from '@/components/Filters/SearchFilters';
 
 const Running = () => {
-  const { auctions, toggleFavorite } = useCarAuction();
+  const { auctions, onToggleFavorite } = useCarAuction();
 
   if (auctions.length === 0) {
     return <NoResults />;
@@ -24,7 +24,7 @@ const Running = () => {
             <Row
               key={auction.id}
               auction={auction}
-              onFavouriteClick={toggleFavorite}
+              onFavouriteClick={onToggleFavorite}
               buttons={[
                 {
                   name: 'Place bid',

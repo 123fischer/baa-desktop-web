@@ -18,6 +18,7 @@ interface FilterContextType {
   selectionOptions: any;
   sorting: string;
   setSorting: (value: string) => void;
+  hasSelectedFilter: boolean;
 }
 
 const defaultFilters: Filters = {
@@ -41,7 +42,12 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [selectionOptions, setSelectionOptions] = useState<Selections>(
     selectionOptionsValues
   );
+
   const [sorting, setSorting] = useState<string>(SortState.Desc);
+
+  const hasSelectedFilter = !Object.values(filters).every(
+    (element) => element === null
+  );
 
   const updateFilter = useCallback(
     (key: keyof Filters, value: string | number[] | null) => {
@@ -51,6 +57,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   );
   const updateSelection = useCallback(
     (key: keyof Selections, value: string | number[] | null) => {
+      console.log('selectionOptionsValues>>', selectionOptionsValues);
+
       setSelectionOptions((prev) => ({ ...prev, [key]: value }));
     },
     []
@@ -70,6 +78,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         updateSelection,
         sorting,
         setSorting,
+        hasSelectedFilter,
       }}
     >
       {children}

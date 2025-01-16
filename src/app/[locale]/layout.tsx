@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 
 import ReactQueryClientProvider from '@/contexts/QueryClientProvider';
-import TranslationsProvider from '@/contexts/TranslationspRrovider';
+import TranslationsProvider from '@/contexts/TranslationsProvider';
 import SessionClientProvider from '@/contexts/SessionClientProvider';
 
 import { FilterProvider } from '@/contexts/FilterContext';

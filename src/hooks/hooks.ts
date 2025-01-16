@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useSubscription } from 'react-stomp-hooks';
-import { IMessage } from '@stomp/stompjs';
+import { useEffect } from 'react';
 
 export const usePageInfiniteLoader = (
   loader: () => any,
@@ -25,12 +23,4 @@ export const usePageInfiniteLoader = (
       loader();
     }
   };
-};
-
-export const useStompSubscription = (url: string | string[]) => {
-  const [lastMessage, setLastMessage] = useState<IMessage>();
-
-  useSubscription(url, (message) => setLastMessage(message));
-
-  return { lastMessage };
 };

@@ -15,7 +15,7 @@ const Tabs = ({ tabs, activeTab }: Props) => {
       {tabs.map((tab) => (
         <Link key={tab.value} href={tab.value}>
           <Button
-            variant="primary"
+            variant='default'
             size="sm"
             className={cn(
               'font-normal hover:bg-neutral-tint',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AnimatePresence, m, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '../UI/Button';
 import LoadingComponent from '../UI/Loading';
 import { BID_INCREMENT } from '@/constants/constants';
@@ -20,6 +20,8 @@ interface BidModalProps {
   setUseBidAgent: (value: boolean) => void;
   isPending: boolean;
   isSuccess: boolean;
+  bidUpdated?: boolean;
+  setBidUpdated: (value: boolean) => void;
 }
 
 const BidModal = ({
@@ -33,12 +35,12 @@ const BidModal = ({
   setUseBidAgent,
   isPending,
   isSuccess,
+  bidUpdated,
+  setBidUpdated,
 }: BidModalProps) => {
   const [confirmBid, setConfirmBid] = useState(false);
-
-  const minimumBid = !!bidDetails?.bidList?.length
-    ? Math.max(...bidDetails?.bidList?.map((ele: any) => ele.bid)) + 100
-    : 100;
+  const [minimumBid, setMinimumBid] = useState<number>(100);
+  const [warning, setWarning] = useState(false);
 
   const handleIncrementBid = () => {
     setCurrentBid((prev: any) => prev + BID_INCREMENT);
@@ -53,6 +55,7 @@ const BidModal = ({
   const handleOnDismiss = () => {
     setConfirmBid(false);
     setCurrentBid(minimumBid);
+    setBidUpdated(false);
     onDismiss?.();
   };
 
@@ -80,6 +83,32 @@ const BidModal = ({
       setCurrentBid(parseInt(prevValue.concat(lastDigit)) * 100);
     }
   };
+
+  useEffect(() => {
+    if (bidDetails) {
+      const MINIMUM_BID = !!bidDetails?.bidList?.length
+        ? Math.max(...bidDetails?.bidList?.map((ele: any) => ele.bid)) + 100
+        : 100;
+      setMinimumBid(MINIMUM_BID);
+      if (!bidUpdated) {
+        setCurrentBid(MINIMUM_BID);
+      }
+    }
+  }, [bidDetails]);
+
+  useEffect(() => {
+    if (bidUpdated && currentBid === minimumBid) {
+      setWarning(true);
+    } else {
+      setWarning(false);
+    }
+  }, [bidUpdated]);
+
+  useEffect(() => {
+    if (currentBid >= minimumBid && warning) {
+      setWarning(false);
+    }
+  }, [currentBid]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -133,7 +162,11 @@ const BidModal = ({
                 <label className="block text-[15px] mb-2 text-dark">
                   Your maximum bid
                 </label>
-                <div className="flex items-center gap-2 border-[1px] rounded-lg border-neutral-shade px-4 py-2">
+                <div
+                  className={`flex items-center gap-2 border-[1px] rounded-lg ${
+                    warning ? 'border-error' : 'border-neutral-shade'
+                  } px-4 py-2`}
+                >
                   <span className="text-light-dark">CHF</span>
                   <input
                     type="text"
@@ -145,7 +178,6 @@ const BidModal = ({
                     }}
                     className="border-1 flex-1 rounded-lg py-2 text-left text-[15px] focus:outline-none "
                   />
-
                   <button
                     onClick={handleIncrementBid}
                     className="bg-neutral-tint hover:bg-neutral px-5 py-2 text-[15px] rounded-lg font-semibold text-dark"
@@ -159,6 +191,10 @@ const BidModal = ({
                     - CHF {BID_INCREMENT}
                   </button>
                 </div>
+                {warning && (
+                  <span className="text-error text-[14px]">{`Another user has placed a bid of CHF ${currentBid}. Please bid at least CHF ${minimumBid}.`}</span>
+                )}
+
                 <p className="text-light-dark text-[14px] mt-1">
                   Minimum bid CHF {formatNumber(minimumBid)}
                 </p>

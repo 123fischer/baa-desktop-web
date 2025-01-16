@@ -8,7 +8,7 @@ import NoResults from '@/components/AuctionTable/NoResults';
 import SearchFilters from '@/components/Filters/SearchFilters';
 
 const Favorites = () => {
-  const { auctions, toggleFavorite } = useCarAuction();
+  const { auctions, onToggleFavorite } = useCarAuction();
 
   if (auctions.length === 0) {
     return <NoResults />;
@@ -31,7 +31,7 @@ const Favorites = () => {
                   onClick: () => {},
                 },
               ]}
-              onFavouriteClick={toggleFavorite}
+              onFavouriteClick={onToggleFavorite}
             />
           ))}
         </tbody>
