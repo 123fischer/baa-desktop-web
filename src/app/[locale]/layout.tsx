@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ReactQueryClientProvider } from '@/contexts/QueryClientProvider';
-import TranslationsProvider from '@/contexts/TranslationspRrovider';
+import TranslationsProvider from '@/contexts/TranslationsProvider';
 import { FilterProvider } from '@/contexts/FilterContext';
 import { MobileBanner } from '@/components/MobileBanner';
 import Header from '@/components/Header';

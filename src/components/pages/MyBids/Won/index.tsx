@@ -18,7 +18,7 @@ const Won = () => {
     <>
       <SearchFilters auctionsLength={auctions.length} />
       <table className="table-auto w-full">
-        <Header noAction />
+        <Header />
         <tbody>
           {auctions.map((auction) => (
             <Row

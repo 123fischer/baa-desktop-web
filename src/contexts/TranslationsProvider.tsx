@@ -9,14 +9,12 @@ const TRUNCATE_UNTRANSLATED = IS_PRODUCTION;
 
 type Translations = {
   locale: Locales;
-  t: (path: string) => string;
-  getTranslationObject: (path: string) => any;
+  t: (path: `#i18n.${string}`, vars?: { [key: string]: string }) => string;
 };
 
 const defaultValue: Translations = {
   locale: 'de',
   t: () => '',
-  getTranslationObject: () => ({}),
 };
 
 const TranslationsContext = createContext(defaultValue);
@@ -38,17 +36,22 @@ export const TranslationsProvider = ({
     }
   }, []);
 
-  const t: Translations['t'] = (path) =>
-    lodash.get(TRANSLATIONS, path)?.[locale] ??
-    (TRUNCATE_UNTRANSLATED ? (path.split('.').pop() as string) : path);
+  const t: Translations['t'] = (path, vars = {}) => {
+    const originalPath: string = path.replace('#i18n.', '');
 
-  const getTranslationObject: Translations['getTranslationObject'] = (path) => {
-    const value = lodash.get(TRANSLATIONS, path);
-    return value !== undefined ? value : {};
+    return (
+      lodash.get(TRANSLATIONS, originalPath)?.[locale] ??
+      (TRUNCATE_UNTRANSLATED
+        ? (originalPath.split('.').pop() as string)
+        : originalPath)
+    ).replace(
+      /{(\w+)(?::([^}]+))?}/g,
+      (match: string, p1: string, p2: string) => vars[p1] || p2 || match
+    );
   };
 
   return (
-    <TranslationsContext.Provider value={{ locale, t, getTranslationObject }}>
+    <TranslationsContext.Provider value={{ locale, t }}>
       {children}
     </TranslationsContext.Provider>
   );

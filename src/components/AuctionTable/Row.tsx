@@ -38,7 +38,7 @@ const Row = ({ auction, onFavouriteClick, buttons }: Props) => {
       <td className="text-primary truncate text-left py-2 px-2 text-sm">
         2d 3h 45m 30s
       </td>
-      {buttons?.length > 0 && (
+      {buttons?.length && buttons?.length > 0 && (
         <td className="text-left py-2 px-2 text-sm">
           <div className="flex items-center gap-2">
             {buttons?.map((button, key) => (
