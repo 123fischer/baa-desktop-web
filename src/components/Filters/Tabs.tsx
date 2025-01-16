@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import { Button } from '@/components/UI/Button';
 import { cn } from '@/utils/utlis';
-import Link from 'next/link';
 
 export type Tab = { name: string; value: string; info: string };
 
@@ -15,7 +15,7 @@ const Tabs = ({ tabs, activeTab }: Props) => {
       {tabs.map((tab) => (
         <Link key={tab.value} href={tab.value}>
           <Button
-            variant='default'
+            variant="default"
             size="sm"
             className={cn(
               'font-normal hover:bg-neutral-tint',
