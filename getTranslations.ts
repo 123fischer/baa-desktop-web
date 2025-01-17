@@ -62,7 +62,6 @@ const getKeys = async () => {
 };
 
 const getStrings = async () => {
-  let count = 0;
   const processChunk = async (chunk: typeof stringIds) => {
     const filterFormula = `OR(${chunk
       .map((id) => `RECORD_ID() = '${id}'`)
@@ -71,7 +70,6 @@ const getStrings = async () => {
       filterFormula,
     });
 
-    count += data?.records.length;
     data?.records?.map(({ fields }: { fields: any }) => {
       if (fields.Keys?.length) {
         fields?.Keys?.map((key: string) => {
