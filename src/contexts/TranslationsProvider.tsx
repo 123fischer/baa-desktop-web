@@ -45,7 +45,7 @@ export const TranslationsProvider = ({
         ? (originalPath.split('.').pop() as string)
         : originalPath)
     ).replace(
-      /{(\w+)(?::([^}]+))?}/g,
+      /{{(\w+)(?::([^}]+))?}}/g,
       (match: string, p1: string, p2: string) => vars[p1] || p2 || match
     );
   };
