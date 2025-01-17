@@ -1,13 +1,19 @@
 import type { Metadata } from 'next';
-import { ReactQueryClientProvider } from '@/contexts/QueryClientProvider';
+import { getServerSession } from 'next-auth';
+
+import ReactQueryClientProvider from '@/contexts/QueryClientProvider';
 import TranslationsProvider from '@/contexts/TranslationsProvider';
+import SessionClientProvider from '@/contexts/SessionClientProvider';
 import { FilterProvider } from '@/contexts/FilterContext';
+
 import { MobileBanner } from '@/components/MobileBanner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { i18n } from '@/i18n/routing';
-import '@/styles/tailwind.css';
 import { Locales } from '@/types/types';
+
+import '@/styles/tailwind.css';
+import '@/styles/globals.scss';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -26,20 +32,27 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const locale = (await params).locale;
+
+  const session = await getServerSession();
+
   return (
     <html lang={locale}>
       <body>
         <ReactQueryClientProvider>
-          <TranslationsProvider locale={locale as Locales}>
-            <FilterProvider>
-              <div className="min-h-screen bg-white">
-                <Header />
-                <main className="container mx-auto px-4 py-8">{children}</main>
-                <Footer />
-                <MobileBanner />
-              </div>
-            </FilterProvider>
-          </TranslationsProvider>
+          <SessionClientProvider session={session}>
+            <TranslationsProvider locale={locale as Locales}>
+              <FilterProvider>
+                <div className="min-h-screen bg-white">
+                  <Header />
+                  <main className="container mx-auto px-4 py-8">
+                    {children}
+                  </main>
+                  <Footer />
+                  <MobileBanner />
+                </div>
+              </FilterProvider>
+            </TranslationsProvider>
+          </SessionClientProvider>
         </ReactQueryClientProvider>
       </body>
     </html>

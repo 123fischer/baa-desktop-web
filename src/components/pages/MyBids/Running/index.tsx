@@ -1,6 +1,6 @@
 'use client';
 
-import useCarAuction from '@/hooks/useCarAuction';
+import useAuctions from '@/hooks/useAuctions';
 import Row from '@/components/AuctionTable/Row';
 import Pagination from '@/components/AuctionTable/Pagination';
 import Header from '@/components/AuctionTable/Header';
@@ -8,7 +8,7 @@ import NoResults from '@/components/AuctionTable/NoResults';
 import SearchFilters from '@/components/Filters/SearchFilters';
 
 const Running = () => {
-  const { auctions, toggleFavorite } = useCarAuction();
+  const { auctions, onToggleFavorite } = useAuctions();
 
   if (auctions.length === 0) {
     return <NoResults />;
@@ -24,7 +24,7 @@ const Running = () => {
             <Row
               key={auction.id}
               auction={auction}
-              onFavouriteClick={toggleFavorite}
+              onFavouriteClick={onToggleFavorite}
               buttons={[
                 {
                   name: 'Place bid',

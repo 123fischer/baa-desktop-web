@@ -1,40 +1,20 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useFilters } from '@/contexts/FilterContext';
-import { filterAuctions } from '@/utils/filters';
-import { Auction } from '@/types/types';
-import { useDebounce } from './useDebounce';
-import { mockAuctions } from '@/utils/mock';
+import { useSession } from 'next-auth/react';
 
-const useCarAuction = () => {
-  const [allAuctions, setAllAuctions] = useState<Auction[]>(mockAuctions);
-  const { filters } = useFilters();
+import { getLot } from '@/api/api';
 
-  // Debounce the search filter to prevent too many re-renders
-  const debouncedFilters = {
-    ...filters,
-    search: useDebounce(filters.search, 300),
+const useAuction = () => {
+  const { data: session } = useSession();
+
+  const getAuction = (lotId: string) => {
+    const data = getLot({ lotId }, session?.accessToken);
+    return data;
   };
-
-  const toggleFavorite = (id: string) => {
-    setAllAuctions((auctions) =>
-      auctions.map((auction) =>
-        auction.id === id
-          ? { ...auction, isFavorite: !auction.isFavorite }
-          : auction
-      )
-    );
-  };
-
-  const filteredAuctions = useMemo(() => {
-    return filterAuctions(allAuctions, debouncedFilters);
-  }, [allAuctions, debouncedFilters]);
 
   return {
-    auctions: filteredAuctions,
-    toggleFavorite,
+    getAuction,
   };
 };
 
-export default useCarAuction;
+export default useAuction;

@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import { Button } from '@/components/UI/Button';
 import { cn } from '@/utils/utlis';
-import Link from 'next/link';
 
 export type Tab = { name: string; value: string; info: string };
 
