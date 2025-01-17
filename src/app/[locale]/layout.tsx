@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { getServerSession } from 'next-auth';
 
 import ReactQueryClientProvider from '@/contexts/QueryClientProvider';
 import TranslationsProvider from '@/contexts/TranslationsProvider';
@@ -21,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export async function generateStaticParams() {
-  return i18n.locales.map((locale) => ({ lang: locale }));
+  return i18n.locales.map((locale) => ({ locale }));
 }
 
 export default async function RootLayout({
@@ -33,13 +32,11 @@ export default async function RootLayout({
 }>) {
   const locale = (await params).locale;
 
-  const session = await getServerSession();
-
   return (
     <html lang={locale}>
       <body>
         <ReactQueryClientProvider>
-          <SessionClientProvider session={session}>
+          <SessionClientProvider>
             <TranslationsProvider locale={locale as Locales}>
               <FilterProvider>
                 <div className="min-h-screen bg-white">

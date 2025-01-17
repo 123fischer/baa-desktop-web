@@ -54,7 +54,7 @@ const SearchFilters: React.FC<Props> = ({ auctionsLength }) => {
   const onSetFilterOptions = async () => {
     const data = await getRunningAuctions(
       {
-        size: DEFAULT_PAGE_SIZE,
+        size: 0,
         category: Category.Running,
         filters: formatFilters(filters),
         order: SortState.Desc,
