@@ -7,9 +7,14 @@
     --color-primary: #d81825;
     --color-accent: #f9a825;
     --color-dark: #1d1d1d;
+    --color-light-grey: #1d1d1d99;
     --color-neutral: #d2d2d2;
     --color-neutral-tint: #f3f3f3;
     --color-neutral-shade: #838383;
+    --color-success: #54ad82;
+    --color-success-tint: #e6f3ec;
+    --color-error: #d83e1c;
+    --color-error-tint: #f3c3b9;
     --color-secondary: #e9f4fc;
     --color-black: #000000;
     --color-white: #ffffff;
@@ -17,6 +22,9 @@
 }
 
 @layer base {
+  * {
+    @apply border-neutral;
+  }
   body {
     @apply bg-white text-black;
   }

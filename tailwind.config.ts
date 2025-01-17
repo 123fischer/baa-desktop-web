@@ -28,6 +28,7 @@ export default {
         dark: {
           DEFAULT: 'var(--color-dark)',
         },
+        'light-dark': 'var(--color-light-grey)',
         neutral: {
           tint: 'var(--color-neutral-tint)',
           DEFAULT: 'var(--color-neutral)',
@@ -35,6 +36,14 @@ export default {
         },
         secondary: {
           DEFAULT: 'var(--color-secondary)',
+        },
+        success: {
+          DEFAULT: 'var(--color-success)',
+          tint: 'var(--color-success-tint)',
+        },
+        error: {
+          DEFAULT: 'var(--color-error)',
+          tint: 'var(--color-error-tint)',
         },
       },
       // keyframes: {

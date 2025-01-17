@@ -1,19 +1,31 @@
 import fetch from 'cross-fetch';
+import dotenv from 'dotenv';
 import fs from 'fs';
 import lodash from 'lodash';
+
+dotenv.config();
 
 const locales = ['de', 'en', 'fr', 'it'] as const;
 const translationData: any = {};
 const keys: any = {};
+const stringIds: string[] = [];
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const writeFile = (path: string, data: any) =>
   fs.writeFileSync(path, JSON.stringify(data, null, 2));
 
-const fetchAirtableData = async (tableId: string, offset = '') => {
+const fetchAirtableData = async (
+  tableId: string,
+  {
+    offset = '',
+    filterFormula = '',
+  }: { offset?: string; filterFormula?: string }
+) => {
   const response = await fetch(
-    `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE}/${tableId}?offset=${offset}`,
+    `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE}/${tableId}?${
+      offset && `offset=${offset}`
+    }${filterFormula && `&filterByFormula=${filterFormula}`}`,
     {
       headers: {
         Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}`,
@@ -24,14 +36,21 @@ const fetchAirtableData = async (tableId: string, offset = '') => {
 };
 
 const getKeys = async () => {
+  const filterFormula = encodeURIComponent(`{Project} = 'CAD2Web'`);
   let offset = '';
+
   while (true) {
     if (offset) {
       await sleep(200);
     }
-    const data = await fetchAirtableData(process.env.AIRTABLE_KEYS!, offset);
+    const data = await fetchAirtableData(process.env.AIRTABLE_KEYS!, {
+      offset,
+      filterFormula,
+    });
+
     data?.records?.map((record: any) => {
       keys[record.id] = record.fields.Name;
+      record.fields.MapToStringId?.map((id: string) => stringIds.push(id));
     });
 
     offset = data.offset;
@@ -43,12 +62,14 @@ const getKeys = async () => {
 };
 
 const getStrings = async () => {
-  let offset = '';
-  while (true) {
-    if (offset) {
-      await sleep(200);
-    }
-    const data = await fetchAirtableData(process.env.AIRTABLE_STRINGS!, offset);
+  const processChunk = async (chunk: typeof stringIds) => {
+    const filterFormula = `OR(${chunk
+      .map((id) => `RECORD_ID() = '${id}'`)
+      .join(',')})`;
+    const data = await fetchAirtableData(process.env.AIRTABLE_STRINGS!, {
+      filterFormula,
+    });
+
     data?.records?.map(({ fields }: { fields: any }) => {
       if (fields.Keys?.length) {
         fields?.Keys?.map((key: string) => {
@@ -61,12 +82,13 @@ const getStrings = async () => {
         });
       }
     });
+  };
 
-    offset = data.offset;
+  const chunks = lodash.chunk(lodash.uniq(stringIds), 100);
 
-    if (!offset) {
-      break;
-    }
+  for (const chunk of chunks) {
+    await processChunk(chunk);
+    await sleep(200);
   }
 };
 

@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { cn, removeLangPrefix } from '@/utils/utlis';
+import { cn } from '@/utils/utlis';
 import HammerIcon from 'public/icons/hammer.svg';
 import StackIcon from 'public/icons/stack.svg';
 import StarIcon from 'public/icons/starOutline.svg';
@@ -14,7 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/UI/DropdownMenu';
-import { usePathname } from 'next/navigation';
+
+import { getUserWebToken } from '@/api/api';
 
 const navItems = [
   {
@@ -37,6 +41,36 @@ const navItems = [
 
 const Header = () => {
   const pathname = usePathname();
+
+  const removeLangPrefix = (path: string) => {
+    const segments = path.split('/');
+    return segments.length > 2 ? `/${segments.slice(2).join('/')}` : '/';
+  };
+
+  const router = useRouter();
+
+  const signInWithCustomToken = async () => {
+    try {
+      const customToken = await getUserWebToken();
+      if (customToken) {
+        const res = await signIn('credentials', {
+          redirect: false,
+          token: customToken.token,
+        });
+        if (res?.error) {
+          return new Error(res?.error);
+        } else {
+          router.push('/');
+        }
+      }
+    } catch (err: any) {}
+  };
+
+  // will be removed upon auth flow implementation
+
+  useEffect(() => {
+    signInWithCustomToken();
+  }, []);
 
   return (
     <header className="border-b">
